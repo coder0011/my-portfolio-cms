@@ -377,10 +377,6 @@ For a fuller cross-stack check:
 composer run ci:check
 ```
 
-## Roadmap and Planning Notes
-
-Longer-term implementation notes live in `docs/LARAVEL_CMS_PLAN.md`. That document includes architecture ideas such as migration tooling, richer editorial workflows, and external frontend integration patterns.
-
 ## Deployment Notes
 
 - Set `APP_ENV=production` and disable debug mode.
