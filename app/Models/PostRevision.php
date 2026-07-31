@@ -17,6 +17,8 @@ class PostRevision extends Model
 
     /**
      * Get the post this revision belongs to.
+     *
+     * @return BelongsTo<Post, $this>
      */
     public function post(): BelongsTo
     {
@@ -25,6 +27,8 @@ class PostRevision extends Model
 
     /**
      * Get the user/editor who created this revision.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

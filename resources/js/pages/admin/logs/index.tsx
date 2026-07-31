@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { History, ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Log {
@@ -104,7 +104,9 @@ export default function Index({ logs }: { logs: PaginatedLogs }) {
                                         variant={link.active ? 'default' : 'outline'}
                                         size="sm"
                                         onClick={() => {
-                                            if (link.url) window.location.href = link.url;
+                                            if (link.url) {
+window.location.href = link.url;
+}
                                         }}
                                         disabled={!link.url}
                                         className="h-8 min-w-[32px] px-2 text-xs"

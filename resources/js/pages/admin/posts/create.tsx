@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Save, Eye, AlertTriangle, CheckCircle, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Save, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { useSeoAnalysis } from '@/hooks/use-seo-analysis';
 import admin from '@/routes/admin';
 
 interface Category {
@@ -43,7 +44,7 @@ export default function Create({ categories }: { categories: Category[] }) {
                 .replace(/(^-|-$)+/g, '');
             setData('slug', generatedSlug);
         }
-    }, [data.title]);
+    }, [data.title, setData]);
 
     // Handle tags parsing
     const handleTagsChange = (val: string) => {
@@ -62,11 +63,13 @@ export default function Create({ categories }: { categories: Category[] }) {
     const handleCategoryToggle = (id: number) => {
         const current = [...data.category_ids];
         const idx = current.indexOf(id);
+
         if (idx > -1) {
             current.splice(idx, 1);
         } else {
             current.push(id);
         }
+
         setData('category_ids', current);
     };
 
@@ -79,84 +82,15 @@ export default function Create({ categories }: { categories: Category[] }) {
         });
     };
 
-    // Real-time SEO analysis states
-    const [seoAnalysis, setSeoAnalysis] = useState({
-        titleLength: 0,
-        titleStatus: 'empty',
-        descLength: 0,
-        descStatus: 'empty',
-        density: 0,
-        keywordInTitle: false,
-        keywordInDesc: false,
-        hasAltTags: true,
-        score: 0,
+    // Real-time SEO analysis computed via custom hook
+    const seoAnalysis = useSeoAnalysis({
+        title: data.title,
+        meta_title: data.meta_title,
+        excerpt: data.excerpt,
+        meta_description: data.meta_description,
+        focus_keyword: data.focus_keyword,
+        body: data.body,
     });
-
-    useEffect(() => {
-        const title = data.meta_title || data.title;
-        const desc = data.meta_description || data.excerpt;
-        const kw = data.focus_keyword.toLowerCase();
-        const body = data.body;
-
-        const titleLen = title.length;
-        let titleStatus = 'good';
-        if (titleLen === 0) titleStatus = 'empty';
-        else if (titleLen < 30) titleStatus = 'too-short';
-        else if (titleLen > 60) titleStatus = 'too-long';
-
-        const descLen = desc.length;
-        let descStatus = 'good';
-        if (descLen === 0) descStatus = 'empty';
-        else if (descLen < 110) descStatus = 'too-short';
-        else if (descLen > 160) descStatus = 'too-long';
-
-        // Keyword checks
-        const keywordInTitle = kw ? title.toLowerCase().includes(kw) : false;
-        const keywordInDesc = kw ? desc.toLowerCase().includes(kw) : false;
-
-        // Density check
-        let density = 0;
-        if (kw && body) {
-            const words = body.toLowerCase().split(/\s+/).filter(Boolean);
-            const matches = body.toLowerCase().match(new RegExp(`\\b${kw}\\b`, 'g'));
-            const matchCount = matches ? matches.length : 0;
-            density = words.length > 0 ? (matchCount / words.length) * 100 : 0;
-        }
-
-        // Check alt tags in body Markdown (e.g. ![Alt text](url))
-        let hasAltTags = true;
-        if (body) {
-            const imgRegex = /!\[(.*?)\]\((.*?)\)/g;
-            let match;
-            while ((match = imgRegex.exec(body)) !== null) {
-                if (!match[1].trim()) {
-                    hasAltTags = false;
-                    break;
-                }
-            }
-        }
-
-        // Calculate a score out of 100
-        let score = 0;
-        if (titleStatus === 'good') score += 25;
-        if (descStatus === 'good') score += 25;
-        if (keywordInTitle) score += 20;
-        if (keywordInDesc) score += 15;
-        if (density >= 0.5 && density <= 2.5) score += 10;
-        if (hasAltTags && body) score += 5;
-
-        setSeoAnalysis({
-            titleLength: titleLen,
-            titleStatus,
-            descLength: descLen,
-            descStatus,
-            density,
-            keywordInTitle,
-            keywordInDesc,
-            hasAltTags,
-            score,
-        });
-    }, [data.title, data.meta_title, data.excerpt, data.meta_description, data.focus_keyword, data.body]);
 
     return (
         <>
@@ -288,6 +222,7 @@ export default function Create({ categories }: { categories: Category[] }) {
                                     accept="image/*"
                                     onChange={e => {
                                         const files = e.target.files;
+
                                         if (files && files.length > 0) {
                                             setData('main_image', files[0]);
                                         }

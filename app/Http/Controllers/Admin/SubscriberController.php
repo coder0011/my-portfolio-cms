@@ -4,15 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subscriber;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class SubscriberController extends Controller
 {
     /**
      * Display a listing of subscribers.
      */
-    public function index()
+    public function index(): Response
     {
         Gate::authorize('subscribers.manage');
 
@@ -27,7 +29,7 @@ class SubscriberController extends Controller
     /**
      * Delete a subscriber.
      */
-    public function destroy(Subscriber $subscriber)
+    public function destroy(Subscriber $subscriber): RedirectResponse
     {
         Gate::authorize('subscribers.manage');
 

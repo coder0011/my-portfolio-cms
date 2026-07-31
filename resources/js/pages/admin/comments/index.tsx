@@ -1,8 +1,8 @@
-import { useState } from 'react';
 import { Head, useForm, router, Link } from '@inertiajs/react';
 import { CheckCircle2, XCircle, Trash, MessageSquare, ArrowLeft, Edit, MessageCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import admin from '@/routes/admin';
@@ -65,8 +65,12 @@ export default function Index({ comments, selectedPostId }: IndexProps) {
     };
 
     const formatCommentDate = (dateStr?: string) => {
-        if (!dateStr) return '';
+        if (!dateStr) {
+return '';
+}
+
         const d = new Date(dateStr.replace(' ', 'T'));
+
         return isNaN(d.getTime()) ? dateStr : d.toLocaleString();
     };
 
@@ -79,7 +83,10 @@ export default function Index({ comments, selectedPostId }: IndexProps) {
 
     const handleUpdateComment = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedComment) return;
+
+        if (!selectedComment) {
+return;
+}
 
         setIsSubmitting(true);
         router.put(admin.comments.update({ comment: selectedComment.id }).url, {
@@ -102,7 +109,10 @@ export default function Index({ comments, selectedPostId }: IndexProps) {
 
     const handlePostReply = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedComment) return;
+
+        if (!selectedComment) {
+return;
+}
 
         setIsSubmitting(true);
         router.post(admin.comments.reply({ comment: selectedComment.id }).url, {
@@ -261,7 +271,9 @@ export default function Index({ comments, selectedPostId }: IndexProps) {
                                     variant={link.active ? 'default' : 'outline'}
                                     size="sm"
                                     onClick={() => {
-                                        if (link.url) window.location.href = link.url;
+                                        if (link.url) {
+window.location.href = link.url;
+}
                                     }}
                                     disabled={!link.url}
                                     className="h-8 min-w-[32px] px-2 text-xs"

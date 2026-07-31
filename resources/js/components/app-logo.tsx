@@ -6,8 +6,14 @@ export default function AppLogo() {
     const { name, siteSettings, asset_url } = usePage<any>().props;
 
     const getFullUrl = (path: string | null) => {
-        if (!path) return '';
-        if (path.startsWith('http')) return path;
+        if (!path) {
+return '';
+}
+
+        if (path.startsWith('http')) {
+return path;
+}
+
         return `${asset_url.replace(/\/$/, '')}${path}`;
     };
 

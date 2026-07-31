@@ -23,6 +23,8 @@ class Comment extends Model
 
     /**
      * Get the post that owns the comment.
+     *
+     * @return BelongsTo<Post, $this>
      */
     public function post(): BelongsTo
     {
@@ -31,6 +33,8 @@ class Comment extends Model
 
     /**
      * Get the parent comment (if reply).
+     *
+     * @return BelongsTo<Comment, $this>
      */
     public function parent(): BelongsTo
     {
@@ -39,6 +43,8 @@ class Comment extends Model
 
     /**
      * Get the replies/child comments.
+     *
+     * @return HasMany<Comment, $this>
      */
     public function replies(): HasMany
     {
@@ -47,6 +53,8 @@ class Comment extends Model
 
     /**
      * Get the user who made this comment (if authenticated).
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

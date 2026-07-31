@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\DispatchWebhookJob;
 use App\Models\Comment;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class CommentController extends Controller
 {
     /**
      * Display a listing of comments.
      */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         Gate::authorize('comments.approve');
 
@@ -36,16 +39,16 @@ class CommentController extends Controller
     /**
      * Toggle the approved status of a comment.
      */
-    public function toggleApprove(Comment $comment)
+    public function toggleApprove(Comment $comment): RedirectResponse
     {
         Gate::authorize('comments.approve');
 
         $comment->update([
-            'approved' => !$comment->approved,
+            'approved' => ! $comment->approved,
         ]);
 
         if ($comment->approved) {
-            \App\Jobs\DispatchWebhookJob::dispatch('comment.approved', [
+            DispatchWebhookJob::dispatch('comment.approved', [
                 'comment_id' => $comment->id,
                 'post_id' => $comment->post_id,
             ]);
@@ -57,7 +60,7 @@ class CommentController extends Controller
     /**
      * Delete a comment.
      */
-    public function destroy(Comment $comment)
+    public function destroy(Comment $comment): RedirectResponse
     {
         Gate::authorize('comments.delete');
 
@@ -69,7 +72,7 @@ class CommentController extends Controller
     /**
      * Update the text of a comment.
      */
-    public function update(Request $request, Comment $comment)
+    public function update(Request $request, Comment $comment): RedirectResponse
     {
         Gate::authorize('comments.approve');
 
@@ -87,7 +90,7 @@ class CommentController extends Controller
     /**
      * Post a reply to a comment from the admin.
      */
-    public function reply(Request $request, Comment $comment)
+    public function reply(Request $request, Comment $comment): RedirectResponse
     {
         Gate::authorize('comments.approve');
 

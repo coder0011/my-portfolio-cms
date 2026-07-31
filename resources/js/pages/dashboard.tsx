@@ -1,10 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { FileText, ThumbsUp, MessageSquare, Users, Edit, Globe, Lock, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import admin from '@/routes/admin';
 import { dashboard } from '@/routes';
+import admin from '@/routes/admin';
 
 interface Post {
     id: number;

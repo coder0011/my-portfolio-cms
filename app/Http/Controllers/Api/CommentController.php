@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Post;
 use App\Models\Comment;
+use App\Models\Post;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -12,7 +13,7 @@ class CommentController extends Controller
     /**
      * Store a newly created comment in storage.
      */
-    public function store(Request $request, int $postId)
+    public function store(Request $request, int $postId): JsonResponse
     {
         // Verify post exists and is published
         $post = Post::whereNotNull('published_at')

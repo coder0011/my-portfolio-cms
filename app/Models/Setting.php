@@ -11,16 +11,17 @@ class Setting extends Model
     /**
      * Get a setting value by key.
      */
-    public static function get(string $key, $default = null)
+    public static function get(string $key, mixed $default = null): mixed
     {
         $setting = self::where('key', $key)->first();
+
         return $setting ? $setting->value : $default;
     }
 
     /**
      * Set a setting value by key.
      */
-    public static function set(string $key, ?string $value)
+    public static function set(string $key, ?string $value): self
     {
         return self::updateOrCreate(['key' => $key], ['value' => $value]);
     }

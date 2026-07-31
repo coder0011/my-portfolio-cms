@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subscriber;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SubscriberController extends Controller
@@ -11,7 +12,7 @@ class SubscriberController extends Controller
     /**
      * Store a newly created subscriber in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'email' => 'required|email|unique:subscribers,email',
@@ -23,7 +24,7 @@ class SubscriberController extends Controller
         ]);
 
         // In a real application, you'd dispatch a mail verification notification here
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Successfully subscribed to the newsletter!',

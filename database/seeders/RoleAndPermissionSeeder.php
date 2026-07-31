@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class RoleAndPermissionSeeder extends Seeder
@@ -35,7 +35,7 @@ class RoleAndPermissionSeeder extends Seeder
         }
 
         // Create Roles and assign permissions
-        
+
         // Super Admin (all permissions)
         $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin']);
         // Super Admins typically bypass permission checks in Gates, but we can assign all for safety

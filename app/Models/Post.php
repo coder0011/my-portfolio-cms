@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Post extends Model
@@ -37,6 +38,8 @@ class Post extends Model
 
     /**
      * Get the author of the post.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -45,6 +48,8 @@ class Post extends Model
 
     /**
      * Get the comments for the post.
+     *
+     * @return HasMany<Comment, $this>
      */
     public function comments(): HasMany
     {
@@ -53,6 +58,8 @@ class Post extends Model
 
     /**
      * Get the revisions for the post.
+     *
+     * @return HasMany<PostRevision, $this>
      */
     public function revisions(): HasMany
     {
@@ -61,6 +68,8 @@ class Post extends Model
 
     /**
      * Get the analytics data for the post.
+     *
+     * @return HasMany<Analytics, $this>
      */
     public function analytics(): HasMany
     {
@@ -69,8 +78,10 @@ class Post extends Model
 
     /**
      * Get the categories for the post.
+     *
+     * @return BelongsToMany<Category, $this>
      */
-    public function categories(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
     }

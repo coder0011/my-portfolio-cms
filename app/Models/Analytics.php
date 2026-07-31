@@ -22,6 +22,8 @@ class Analytics extends Model
 
     /**
      * Get the post that this analytics entry belongs to.
+     *
+     * @return BelongsTo<Post, $this>
      */
     public function post(): BelongsTo
     {

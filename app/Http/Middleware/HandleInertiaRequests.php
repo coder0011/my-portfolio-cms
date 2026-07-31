@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -40,11 +41,11 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'asset_url' => asset(''),
             'siteSettings' => [
-                'site_name' => \App\Models\Setting::get('site_name', config('app.name')),
-                'site_logo' => \App\Models\Setting::get('site_logo'),
-                'site_favicon' => \App\Models\Setting::get('site_favicon'),
-                'admin_logo' => \App\Models\Setting::get('admin_logo'),
-                'admin_icon' => \App\Models\Setting::get('admin_icon'),
+                'site_name' => Setting::get('site_name', config('app.name')),
+                'site_logo' => Setting::get('site_logo'),
+                'site_favicon' => Setting::get('site_favicon'),
+                'admin_logo' => Setting::get('admin_logo'),
+                'admin_icon' => Setting::get('admin_icon'),
             ],
             'auth' => [
                 'user' => $request->user() ? array_merge($request->user()->toArray(), [

@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { FileText, Plus, Edit, Trash, Eye, Globe, Lock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Plus, Edit, Trash, Globe, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import admin from '@/routes/admin';
 
 interface Post {

@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Mail, Trash, UserCheck, ShieldAlert } from 'lucide-react';
+import { Mail, Trash, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import admin from '@/routes/admin';
 
@@ -123,7 +123,9 @@ export default function Index({ subscribers }: { subscribers: PaginatedSubscribe
                                         variant={link.active ? 'default' : 'outline'}
                                         size="sm"
                                         onClick={() => {
-                                            if (link.url) window.location.href = link.url;
+                                            if (link.url) {
+window.location.href = link.url;
+}
                                         }}
                                         disabled={!link.url}
                                         className="h-8 min-w-[32px] px-2 text-xs"

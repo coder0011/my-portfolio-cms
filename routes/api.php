@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\CommentController;
-use App\Http\Controllers\Api\SubscriberController;
+use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\SubscriberController;
+use Illuminate\Support\Facades\Route;
 
 // Public Blog API routes
 Route::prefix('v1')->group(function () {
@@ -13,12 +13,13 @@ Route::prefix('v1')->group(function () {
 
     // Posts
     Route::get('posts', [PostController::class, 'index']);
+    Route::get('posts/slider', [PostController::class, 'slider']);
     Route::get('posts/{slug}', [PostController::class, 'show']);
     Route::post('posts/{id}/like', [PostController::class, 'like']);
-    
+
     // Comments
     Route::post('posts/{postId}/comments', [CommentController::class, 'store']);
-    
+
     // Newsletter Subscribers
     Route::post('subscribers', [SubscriberController::class, 'store']);
 });

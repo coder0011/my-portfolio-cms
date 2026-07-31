@@ -14,11 +14,15 @@ class DispatchWebhookJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $event;
-    protected $payload;
+    protected string $event;
+
+    /** @var array<string, mixed> */
+    protected array $payload;
 
     /**
      * Create a new job instance.
+     *
+     * @param  array<string, mixed>  $payload
      */
     public function __construct(string $event, array $payload = [])
     {
@@ -33,8 +37,9 @@ class DispatchWebhookJob implements ShouldQueue
     {
         $webhookUrl = config('services.frontend.webhook_url');
 
-        if (!$webhookUrl) {
-            Log::info("Frontend rebuild webhook skipped: No webhook URL configured.");
+        if (! $webhookUrl) {
+            Log::info('Frontend rebuild webhook skipped: No webhook URL configured.');
+
             return;
         }
 
@@ -50,10 +55,10 @@ class DispatchWebhookJob implements ShouldQueue
             if ($response->failed()) {
                 Log::error("Frontend rebuild webhook failed. Status: {$response->status()}, Response: {$response->body()}");
             } else {
-                Log::info("Frontend rebuild webhook successfully dispatched.");
+                Log::info('Frontend rebuild webhook successfully dispatched.');
             }
         } catch (\Exception $e) {
-            Log::error("Error dispatching frontend rebuild webhook: " . $e->getMessage());
+            Log::error('Error dispatching frontend rebuild webhook: ' . $e->getMessage());
         }
     }
 }

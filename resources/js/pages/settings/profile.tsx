@@ -44,8 +44,14 @@ export default function Profile({ mustVerifyEmail, status, siteSettings }: PageP
     });
 
     const getFullUrl = (path: string | null) => {
-        if (!path) return '';
-        if (path.startsWith('http')) return path;
+        if (!path) {
+return '';
+}
+
+        if (path.startsWith('http')) {
+return path;
+}
+
         return `${asset_url.replace(/\/$/, '')}${path}`;
     };
 

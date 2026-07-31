@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Category;
+use App\Models\Comment;
+use App\Models\Post;
+use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Models\User;
-use App\Models\Post;
-use App\Models\Category;
-use App\Models\Comment;
 
 class MigrateSanityCommand extends Command
 {
@@ -30,7 +31,7 @@ class MigrateSanityCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         $this->info('Starting Sanity CMS migration...');
 
@@ -38,19 +39,21 @@ class MigrateSanityCommand extends Command
         $projectId = 'mip7w4pq';
         $dataset = 'production';
         $query = '*[_type in ["post", "author", "category", "comment"]]';
-        $url = "https://{$projectId}.api.sanity.io/v2021-10-21/data/query/{$dataset}?query=" . urlencode($query);
+        $url = "https://{$projectId}.api.sanity.io/v2021-10-21/data/query/{$dataset}?query=".urlencode($query);
 
         $this->info("Fetching data from: {$url}");
         $response = Http::withoutVerifying()->get($url);
 
         if ($response->failed()) {
             $this->error('Failed to fetch data from Sanity API.');
+
             return 1;
         }
 
         $data = $response->json();
-        $documents = $data['result'] ?? [];
-        $this->info('Found ' . count($documents) . ' documents from Sanity.');
+        /** @var array<int, array<string, mixed>> $documents */
+        $documents = is_array($data) ? ($data['result'] ?? []) : [];
+        $this->info('Found '.count($documents).' documents from Sanity.');
 
         // Group documents by type
         $grouped = collect($documents)->groupBy('_type');
@@ -78,17 +81,17 @@ class MigrateSanityCommand extends Command
             );
             $categoryMap[$catDoc['_id']] = $category;
         }
-        $this->info("Migrated " . count($categoryMap) . " categories.");
+        $this->info('Migrated '.count($categoryMap).' categories.');
 
         // 3. Migrate Authors -> Users
         $this->info('Migrating authors...');
         $authors = $grouped->get('author', collect());
         foreach ($authors as $authorDoc) {
-            $email = Str::slug($authorDoc['name']) . '@portfolio.com'; // Fallback email
-            
+            $email = Str::slug($authorDoc['name']).'@portfolio.com'; // Fallback email
+
             // Check if user already exists
             $user = User::where('email', $email)->first();
-            
+
             // Handle avatar
             $avatarUrl = null;
             if (isset($authorDoc['image']['asset']['_ref'])) {
@@ -101,7 +104,7 @@ class MigrateSanityCommand extends Command
                 $bio = $this->portableTextToMarkdown($authorDoc['bio']);
             }
 
-            if (!$user) {
+            if (! $user) {
                 $user = User::create([
                     'name' => $authorDoc['name'],
                     'email' => $email,
@@ -119,14 +122,14 @@ class MigrateSanityCommand extends Command
 
             $authorMap[$authorDoc['_id']] = $user;
         }
-        $this->info("Migrated " . count($authorMap) . " authors.");
+        $this->info('Migrated '.count($authorMap).' authors.');
 
         // 4. Migrate Posts
         $this->info('Migrating posts...');
         $posts = $grouped->get('post', collect());
         foreach ($posts as $postDoc) {
             $slug = $postDoc['slug']['current'] ?? Str::slug($postDoc['title']);
-            
+
             // Find author
             $authorRef = $postDoc['author']['_ref'] ?? null;
             $user = $authorMap[$authorRef] ?? User::first(); // Default to first user if none found
@@ -157,7 +160,7 @@ class MigrateSanityCommand extends Command
                     'excerpt' => $postDoc['excerpt'] ?? null,
                     'body' => $body,
                     'main_image' => $mainImage,
-                    'published_at' => isset($postDoc['publishedAt']) ? \Illuminate\Support\Carbon::parse($postDoc['publishedAt']) : null,
+                    'published_at' => isset($postDoc['publishedAt']) ? Carbon::parse($postDoc['publishedAt']) : null,
                     'likes_count' => $postDoc['likes'] ?? 0,
                     'difficulty' => $postDoc['difficulty'] ?? 'beginner',
                     'estimated_time' => $postDoc['estimatedTime'] ?? null,
@@ -183,7 +186,7 @@ class MigrateSanityCommand extends Command
 
             $postMap[$postDoc['_id']] = $post;
         }
-        $this->info("Migrated " . count($postMap) . " posts.");
+        $this->info('Migrated '.count($postMap).' posts.');
 
         // 5. Migrate Comments
         $this->info('Migrating comments...');
@@ -191,7 +194,7 @@ class MigrateSanityCommand extends Command
         $commentsMigrated = 0;
         foreach ($comments as $commentDoc) {
             $postRef = $commentDoc['post']['_ref'] ?? null;
-            if (!$postRef || !isset($postMap[$postRef])) {
+            if (! $postRef || ! isset($postMap[$postRef])) {
                 continue;
             }
 
@@ -211,6 +214,7 @@ class MigrateSanityCommand extends Command
         $this->info("Migrated {$commentsMigrated} comments.");
 
         $this->info('Sanity CMS migration completed successfully!');
+
         return 0;
     }
 
@@ -220,8 +224,8 @@ class MigrateSanityCommand extends Command
     private function downloadSanityImage(string $ref, string $subDir): ?string
     {
         // Sanity image ref structure: image-8d00...-300x200-png
-        if (!preg_match('/^image-([a-f0-9]+)-(\d+x\d+)-(\w+)$/', $ref, $matches)) {
-            if (!preg_match('/^image-([a-f0-9]+)-(\w+)$/', $ref, $matches)) {
+        if (! preg_match('/^image-([a-f0-9]+)-(\d+x\d+)-(\w+)$/', $ref, $matches)) {
+            if (! preg_match('/^image-([a-f0-9]+)-(\w+)$/', $ref, $matches)) {
                 return null;
             }
             $id = $matches[1];
@@ -229,7 +233,7 @@ class MigrateSanityCommand extends Command
             $dimensions = '';
         } else {
             $id = $matches[1];
-            $dimensions = '-' . $matches[2];
+            $dimensions = '-'.$matches[2];
             $ext = $matches[3];
         }
 
@@ -242,6 +246,7 @@ class MigrateSanityCommand extends Command
                 $contents = $response->body();
                 $path = "public/blogs/{$subDir}/{$filename}";
                 Storage::put($path, $contents);
+
                 return Storage::url($path);
             }
         } catch (\Exception $e) {
@@ -253,6 +258,8 @@ class MigrateSanityCommand extends Command
 
     /**
      * Custom lightweight parser from Sanity Portable Text blocks to Markdown.
+     *
+     * @param  array<int, array<string, mixed>>  $blocks
      */
     private function portableTextToMarkdown(array $blocks): string
     {
@@ -343,6 +350,7 @@ class MigrateSanityCommand extends Command
                 }
             }
         }
+
         return trim($markdown);
     }
 }

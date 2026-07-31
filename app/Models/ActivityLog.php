@@ -16,6 +16,8 @@ class ActivityLog extends Model
 
     /**
      * Get the user who triggered this log entry.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

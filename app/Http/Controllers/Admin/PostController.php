@@ -3,20 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Post;
+use App\Jobs\DispatchWebhookJob;
 use App\Models\Category;
+use App\Models\Post;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class PostController extends Controller
 {
     /**
      * Display a listing of the posts.
      */
-    public function index()
+    public function index(): Response
     {
         Gate::authorize('posts.create'); // Editors can view posts list
 
@@ -33,7 +36,7 @@ class PostController extends Controller
     /**
      * Show the form for creating a new post.
      */
-    public function create()
+    public function create(): Response
     {
         Gate::authorize('posts.create');
 
@@ -47,7 +50,7 @@ class PostController extends Controller
     /**
      * Store a newly created post in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         Gate::authorize('posts.create');
 
@@ -74,7 +77,9 @@ class PostController extends Controller
         $imagePath = null;
         if ($request->hasFile('main_image')) {
             $path = $request->file('main_image')->store('public/blogs/images');
-            $imagePath = Storage::url($path);
+            if ($path !== false) {
+                $imagePath = Storage::url($path);
+            }
         }
 
         $post = Post::create([
@@ -95,12 +100,12 @@ class PostController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
-        if (!empty($validated['category_ids'])) {
+        if (! empty($validated['category_ids'])) {
             $post->categories()->sync($validated['category_ids']);
         }
 
         // Dispatch frontend rebuild webhook
-        \App\Jobs\DispatchWebhookJob::dispatch('post.created', [
+        DispatchWebhookJob::dispatch('post.created', [
             'post_id' => $post->id,
             'slug' => $post->slug,
         ]);
@@ -111,7 +116,7 @@ class PostController extends Controller
     /**
      * Show the form for editing the specified post.
      */
-    public function edit(Post $post)
+    public function edit(Post $post): Response
     {
         Gate::authorize('posts.edit');
 
@@ -127,13 +132,13 @@ class PostController extends Controller
     /**
      * Update the specified post in storage.
      */
-    public function update(Request $request, Post $post)
+    public function update(Request $request, Post $post): RedirectResponse
     {
         Gate::authorize('posts.edit');
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:posts,slug,' . $post->id,
+            'slug' => 'required|string|max:255|unique:posts,slug,'.$post->id,
             'excerpt' => 'nullable|string',
             'body' => 'nullable|string',
             'main_image' => 'nullable', // Can be file or existing URL string
@@ -166,7 +171,9 @@ class PostController extends Controller
                 Storage::delete(str_replace('/storage', 'public', $post->main_image));
             }
             $path = $request->file('main_image')->store('public/blogs/images');
-            $imagePath = Storage::url($path);
+            if ($path !== false) {
+                $imagePath = Storage::url($path);
+            }
         }
 
         $post->update([
@@ -189,7 +196,7 @@ class PostController extends Controller
         $post->categories()->sync($validated['category_ids'] ?? []);
 
         // Dispatch frontend rebuild webhook
-        \App\Jobs\DispatchWebhookJob::dispatch('post.updated', [
+        DispatchWebhookJob::dispatch('post.updated', [
             'post_id' => $post->id,
             'slug' => $post->slug,
         ]);
@@ -200,7 +207,7 @@ class PostController extends Controller
     /**
      * Remove the specified post from storage.
      */
-    public function destroy(Post $post)
+    public function destroy(Post $post): RedirectResponse
     {
         Gate::authorize('posts.delete');
 
@@ -212,7 +219,7 @@ class PostController extends Controller
         $post->delete();
 
         // Dispatch frontend rebuild webhook
-        \App\Jobs\DispatchWebhookJob::dispatch('post.deleted', [
+        DispatchWebhookJob::dispatch('post.deleted', [
             'slug' => $slug,
         ]);
 
