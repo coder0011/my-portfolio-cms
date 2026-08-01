@@ -18,6 +18,12 @@ class Setting extends Model
         return $setting ? $setting->value : $default;
     }
 
+    protected static function booted()
+    {
+        static::saved(fn() => cache()->forget('portfolio_settings'));
+        static::deleted(fn() => cache()->forget('portfolio_settings'));
+    }
+
     /**
      * Set a setting value by key.
      */

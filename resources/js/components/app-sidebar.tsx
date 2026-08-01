@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, FileText, MessageSquare, History, Users } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, FileText, MessageSquare, History, Users, GraduationCap, Briefcase } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -66,6 +66,24 @@ export function AppSidebar() {
             href: admin.subscribers.index().url,
             icon: Users,
             permission: 'subscribers.manage',
+        },
+        {
+            title: 'Educations',
+            href: admin.educations.index().url,
+            icon: GraduationCap,
+            permission: 'educations.manage',
+        },
+        {
+            title: 'Experiences',
+            href: admin.experiences.index().url,
+            icon: Briefcase,
+            permission: 'experiences.manage',
+        },
+        {
+            title: 'Projects',
+            href: admin.projects.index().url,
+            icon: FolderGit2,
+            permission: 'projects.manage',
         },
     ].filter(item => permissions.includes(item.permission));
 

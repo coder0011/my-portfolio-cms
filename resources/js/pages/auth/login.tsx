@@ -8,9 +8,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+import { resolveUrl } from '@/lib/utils';
 
 type Props = {
     status?: string;
@@ -18,6 +18,10 @@ type Props = {
 };
 
 export default function Login({ status, canResetPassword }: Props) {
+    const formProps = store.form();
+    const actionUrl = resolveUrl(formProps.action);
+    const resetPasswordUrl = resolveUrl('/forgot-password');
+
     return (
         <>
             <Head title="Log in" />
@@ -25,7 +29,8 @@ export default function Login({ status, canResetPassword }: Props) {
             <PasskeyVerify />
 
             <Form
-                {...store.form()}
+                {...formProps}
+                action={actionUrl}
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
             >
@@ -52,7 +57,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     <Label htmlFor="password">Password</Label>
                                     {canResetPassword && (
                                         <TextLink
-                                            href={request()}
+                                            href={resetPasswordUrl}
                                             className="ml-auto text-sm"
                                             tabIndex={5}
                                         >
@@ -90,13 +95,6 @@ export default function Login({ status, canResetPassword }: Props) {
                                 {processing && <Spinner />}
                                 Log in
                             </Button>
-                        </div>
-
-                        <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink href={register()} tabIndex={5}>
-                                Sign up
-                            </TextLink>
                         </div>
                     </>
                 )}

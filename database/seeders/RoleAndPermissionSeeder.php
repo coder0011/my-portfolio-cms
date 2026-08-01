@@ -28,6 +28,9 @@ class RoleAndPermissionSeeder extends Seeder
             'comments.delete',
             'subscribers.manage',
             'logs.view',
+            'educations.manage',
+            'experiences.manage',
+            'projects.manage',
         ];
 
         foreach ($permissions as $permission) {

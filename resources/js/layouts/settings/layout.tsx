@@ -8,12 +8,18 @@ import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
+import { edit as editPortfolio } from '@/routes/portfolio';
 import type { NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: 'Backend Configuration',
         href: edit(),
+        icon: null,
+    },
+    {
+        title: 'Frontend Configuration',
+        href: editPortfolio(),
         icon: null,
     },
     {

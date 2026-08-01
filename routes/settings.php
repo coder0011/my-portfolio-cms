@@ -10,6 +10,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::match(['post', 'patch'], 'settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    Route::get('settings/portfolio', [ProfileController::class, 'editPortfolio'])->name('portfolio.edit');
+    Route::match(['post', 'patch'], 'settings/portfolio', [ProfileController::class, 'updatePortfolio'])->name('portfolio.update');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

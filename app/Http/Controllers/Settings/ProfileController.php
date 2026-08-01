@@ -23,13 +23,10 @@ class ProfileController extends Controller
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
-            'siteSettings' => [
-                'site_name' => Setting::get('site_name', config('app.name')),
-                'site_logo' => Setting::get('site_logo'),
-                'site_favicon' => Setting::get('site_favicon'),
+            'adminSettings' => [
                 'admin_logo' => Setting::get('admin_logo'),
                 'admin_icon' => Setting::get('admin_icon'),
-            ],
+            ]
         ]);
     }
 
@@ -45,16 +42,10 @@ class ProfileController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'bio' => 'nullable|string|max:1000',
             'avatar' => 'nullable|image|max:2048',
-
-            // Site Settings
-            'site_name' => 'nullable|string|max:255',
-            'site_logo' => 'nullable|image|max:2048',
-            'site_favicon' => 'nullable|image|max:1024',
-            'admin_logo' => 'nullable|image|max:2048',
-            'admin_icon' => 'nullable|image|max:1024',
+            'admin_logo' => 'nullable|file|mimes:svg,png,jpg,jpeg,webp|max:2048',
+            'admin_icon' => 'nullable|file|mimes:svg,png,jpg,jpeg,webp|max:2048',
         ]);
 
-        // Update profile
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->bio = $validated['bio'] ?? null;
@@ -75,29 +66,212 @@ class ProfileController extends Controller
 
         $user->save();
 
-        // Update site settings
-        if ($request->has('site_name')) {
-            Setting::set('site_name', $validated['site_name']);
-        }
+        // Handle Admin Brand Logo
+        if ($request->hasFile('admin_logo')) {
+            $oldLogo = Setting::get('admin_logo');
+            if ($oldLogo && str_starts_with($oldLogo, '/storage')) {
+                Storage::delete(str_replace('/storage', 'public', $oldLogo));
+            }
 
-        $settingFiles = ['site_logo', 'site_favicon', 'admin_logo', 'admin_icon'];
-        foreach ($settingFiles as $fileKey) {
-            if ($request->hasFile($fileKey)) {
-                $oldValue = Setting::get($fileKey);
-                if ($oldValue && str_starts_with($oldValue, '/storage')) {
-                    Storage::delete(str_replace('/storage', 'public', $oldValue));
-                }
-
-                $path = $request->file($fileKey)->store('public/blogs/settings');
-                if ($path !== false) {
-                    Setting::set($fileKey, Storage::url($path));
-                }
+            $file = $request->file('admin_logo');
+            $date = date('Y-m-d');
+            $filename = strtolower('backend-logo-' . $date . '.' . $file->getClientOriginalExtension());
+            $path = $file->storeAs('public/backend', $filename);
+            
+            if ($path !== false) {
+                Setting::set('admin_logo', Storage::url($path));
             }
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile and settings updated.')]);
+        // Handle Admin Brand Icon
+        if ($request->hasFile('admin_icon')) {
+            $oldIcon = Setting::get('admin_icon');
+            if ($oldIcon && str_starts_with($oldIcon, '/storage')) {
+                Storage::delete(str_replace('/storage', 'public', $oldIcon));
+            }
+
+            $file = $request->file('admin_icon');
+            $date = date('Y-m-d');
+            $filename = strtolower('backend-icon-' . $date . '.' . $file->getClientOriginalExtension());
+            $path = $file->storeAs('public/backend', $filename);
+            
+            if ($path !== false) {
+                Setting::set('admin_icon', Storage::url($path));
+            }
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated successfully.')]);
 
         return to_route('profile.edit');
+    }
+
+    /**
+     * Show the portfolio/website configuration page.
+     */
+    public function editPortfolio(Request $request): Response
+    {
+        return Inertia::render('settings/portfolio', [
+            'siteSettings' => [
+                'site_name' => Setting::get('site_name', config('app.name')),
+                'site_logo' => Setting::get('site_logo'),
+                'site_favicon' => Setting::get('site_favicon'),
+                'site_meta_title' => Setting::get('site_meta_title'),
+                'site_meta_description' => Setting::get('site_meta_description'),
+                'owner_name' => Setting::get('owner_name'),
+                'owner_title' => Setting::get('owner_title'),
+                'owner_bio_short' => Setting::get('owner_bio_short'),
+                'owner_bio_long' => Setting::get('owner_bio_long'),
+                'contact_email' => Setting::get('contact_email'),
+                'contact_phone' => Setting::get('contact_phone'),
+                'contact_location' => Setting::get('contact_location'),
+                'contact_address' => Setting::get('contact_address'),
+                'google_map_link' => Setting::get('google_map_link'),
+                'total_experience' => Setting::get('total_experience'),
+
+                'cv_file_path' => Setting::get('cv_file_path'),
+                'social_links' => json_decode(Setting::get('social_links', '[]'), true) ?: [],
+            ]
+        ]);
+    }
+
+    /**
+     * Update the portfolio/website configuration.
+     */
+    public function updatePortfolio(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            // Site Settings basic assets
+            'site_name' => 'nullable|string|max:255',
+            'site_logo' => 'nullable|file|mimes:svg,png,jpg,jpeg,webp|max:2048',
+            'site_favicon' => 'nullable|file|mimes:svg,png,jpg,jpeg,webp|max:1024',
+
+            // Site Metadata
+            'site_meta_title' => 'nullable|string|max:255',
+            'site_meta_description' => 'nullable|string|max:1000',
+
+            // Owner Details
+            'owner_name' => 'nullable|string|max:255',
+            'owner_title' => 'nullable|string|max:255',
+            'owner_bio_short' => 'nullable|string|max:1000',
+            'owner_bio_long' => 'nullable|string|max:5000',
+
+            'total_experience' => 'nullable|string|max:255',
+
+            // Contact Details
+            'contact_email' => 'nullable|email|max:255',
+            'contact_phone' => 'nullable|string|max:255',
+            'contact_location' => 'nullable|string|max:255',
+            'contact_address' => 'nullable|string|max:500',
+            'google_map_link' => 'nullable|string|max:2048',
+
+            // Resume File (PDF only)
+            'cv_file_path' => 'nullable|file|mimes:pdf|max:10240',
+
+            // Dynamic Social Profiles
+            'social_links' => 'nullable|array',
+            'social_links.*.icon' => 'nullable|string|max:2048',
+            'social_links.*.icon_file' => 'nullable|file|mimes:svg,png,jpg,jpeg,webp|max:2048',
+            'social_links.*.name' => 'required|string|max:255',
+            'social_links.*.url' => 'required|string|max:2048',
+            'social_links.*.sort_order' => 'required|integer',
+        ]);
+
+        // Update settings text fields
+        $settingsTextKeys = [
+            'site_name', 'site_meta_title', 'site_meta_description',
+            'owner_name', 'owner_title', 'owner_bio_short', 'owner_bio_long',
+            'total_experience',
+            'contact_email', 'contact_phone', 'contact_location', 'contact_address', 'google_map_link',
+        ];
+
+        foreach ($settingsTextKeys as $textKey) {
+            if ($request->has($textKey)) {
+                Setting::set($textKey, $validated[$textKey] ?? null);
+            }
+        }
+
+        if ($request->has('social_links')) {
+            $socialLinks = $validated['social_links'] ?? [];
+
+            foreach ($socialLinks as $index => &$link) {
+                // If a new icon file has been uploaded for this profile
+                if ($request->hasFile("social_links.{$index}.icon_file")) {
+                    $file = $request->file("social_links.{$index}.icon_file");
+                    
+                    // Rename with lowercase slug name and date
+                    $slugName = str($link['name'])->slug()->toString();
+                    $date = date('Y-m-d');
+                    $filename = strtolower($slugName . '-' . $date . '.' . $file->getClientOriginalExtension());
+                    
+                    // Save in CMS public storage
+                    $path = $file->storeAs('public/frontend/social-icons', $filename);
+                    if ($path !== false) {
+                        $link['icon'] = Storage::url($path);
+                    }
+                }
+
+                // Strip the temporary File object reference before database storage
+                unset($link['icon_file']);
+            }
+            unset($link);
+
+            Setting::set('social_links', json_encode($socialLinks));
+        }
+
+        // Handle CV file upload
+        if ($request->hasFile('cv_file_path')) {
+            $oldCv = Setting::get('cv_file_path');
+            if ($oldCv && str_starts_with($oldCv, '/storage')) {
+                Storage::delete(str_replace('/storage', 'public', $oldCv));
+            }
+
+            $file = $request->file('cv_file_path');
+            $date = date('Y-m-d');
+            $filename = strtolower('cv-' . $date . '.' . $file->getClientOriginalExtension());
+            $path = $file->storeAs('public/frontend/cv', $filename);
+            
+            if ($path !== false) {
+                Setting::set('cv_file_path', Storage::url($path));
+            }
+        }
+
+        // Handle Site Logo file upload
+        if ($request->hasFile('site_logo')) {
+            $oldLogo = Setting::get('site_logo');
+            if ($oldLogo && str_starts_with($oldLogo, '/storage')) {
+                Storage::delete(str_replace('/storage', 'public', $oldLogo));
+            }
+
+            $file = $request->file('site_logo');
+            $date = date('Y-m-d');
+            $filename = strtolower('site-logo-' . $date . '.' . $file->getClientOriginalExtension());
+            $path = $file->storeAs('public/frontend/logo', $filename);
+            
+            if ($path !== false) {
+                Setting::set('site_logo', Storage::url($path));
+            }
+        }
+
+        // Handle Site Favicon file upload
+        if ($request->hasFile('site_favicon')) {
+            $oldFavicon = Setting::get('site_favicon');
+            if ($oldFavicon && str_starts_with($oldFavicon, '/storage')) {
+                Storage::delete(str_replace('/storage', 'public', $oldFavicon));
+            }
+
+            $file = $request->file('site_favicon');
+            $date = date('Y-m-d');
+            $filename = strtolower('site-favicon-' . $date . '.' . $file->getClientOriginalExtension());
+            $path = $file->storeAs('public/frontend/favicon', $filename);
+            
+            if ($path !== false) {
+                Setting::set('site_favicon', Storage::url($path));
+            }
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Portfolio settings updated successfully.')]);
+
+        return to_route('portfolio.edit');
     }
 
     /**

@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -32,6 +35,14 @@ class AppServiceProvider extends ServiceProvider
         // This works in the app by using gate-related functions like auth()->user()->can() and @can()
         Gate::before(function ($user, $ability) {
             return $user->hasRole('Super Admin') ? true : null;
+        });
+
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip() ?: $request->user()?->id);
+        });
+
+        RateLimiter::for('api_writes', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip() ?: $request->user()?->id);
         });
     }
 

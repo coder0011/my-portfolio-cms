@@ -4,13 +4,20 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\SubscriberController;
+use App\Http\Controllers\Admin\EducationController;
+use App\Http\Controllers\Admin\ExperienceController;
+use App\Http\Controllers\Admin\ProjectController;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Subscriber;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::inertia('/', 'welcome')->name('home');
+//Route::inertia('/', 'welcome')->name('home');
+
+Route::get('/', function () {
+    return redirect()->route('login');
+})->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
@@ -59,6 +66,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('subscribers', [SubscriberController::class, 'index'])->name('admin.subscribers.index');
         Route::delete('subscribers/{subscriber}', [SubscriberController::class, 'destroy'])->name('admin.subscribers.destroy');
+
+        // Educations Timeline CRUD
+        Route::get('educations', [EducationController::class, 'index'])->name('admin.educations.index');
+        Route::post('educations', [EducationController::class, 'store'])->name('admin.educations.store');
+        Route::put('educations/{education}', [EducationController::class, 'update'])->name('admin.educations.update');
+        Route::delete('educations/{education}', [EducationController::class, 'destroy'])->name('admin.educations.destroy');
+
+        // Experiences Timeline CRUD
+        Route::get('experiences', [ExperienceController::class, 'index'])->name('admin.experiences.index');
+        Route::post('experiences', [ExperienceController::class, 'store'])->name('admin.experiences.store');
+        Route::put('experiences/{experience}', [ExperienceController::class, 'update'])->name('admin.experiences.update');
+        Route::delete('experiences/{experience}', [ExperienceController::class, 'destroy'])->name('admin.experiences.destroy');
+
+        // Projects Portfolio CRUD
+        Route::get('projects', [ProjectController::class, 'index'])->name('admin.projects.index');
+        Route::post('projects', [ProjectController::class, 'store'])->name('admin.projects.store');
+        Route::put('projects/{project}', [ProjectController::class, 'update'])->name('admin.projects.update');
+        Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('admin.projects.destroy');
     });
 });
 

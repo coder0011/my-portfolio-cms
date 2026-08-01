@@ -85,4 +85,22 @@ class Post extends Model
     {
         return $this->belongsToMany(Category::class);
     }
+
+    protected static function booted()
+    {
+        static::saved(function ($post) {
+            cache()->forget('blog_posts_all');
+            cache()->forget('blog_posts_slider');
+            if ($post->slug) {
+                cache()->forget("blog_post_{$post->slug}");
+            }
+        });
+        static::deleted(function ($post) {
+            cache()->forget('blog_posts_all');
+            cache()->forget('blog_posts_slider');
+            if ($post->slug) {
+                cache()->forget("blog_post_{$post->slug}");
+            }
+        });
+    }
 }
