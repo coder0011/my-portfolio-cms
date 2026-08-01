@@ -34,6 +34,13 @@ export default function Create({ categories }: { categories: Category[] }) {
 
     const [tagsInput, setTagsInput] = useState('');
     const [secondaryKeywordsInput, setSecondaryKeywordsInput] = useState('');
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (imagePreview) URL.revokeObjectURL(imagePreview);
+        };
+    }, [imagePreview]);
 
     // Auto-generate slug from title
     useEffect(() => {
@@ -217,6 +224,16 @@ export default function Create({ categories }: { categories: Category[] }) {
 
                             <div>
                                 <Label>Main Image</Label>
+                                {imagePreview && (
+                                    <div className="mt-2 mb-3 relative max-w-[200px] rounded-lg overflow-hidden border border-primary/40 p-1 bg-muted/10">
+                                        <img 
+                                            src={imagePreview} 
+                                            alt="Preview" 
+                                            className="w-full h-auto object-cover rounded" 
+                                        />
+                                        <span className="absolute bottom-1.5 right-1.5 bg-primary/80 text-white text-[9px] px-1.5 py-0.5 rounded font-semibold">Preview</span>
+                                    </div>
+                                )}
                                 <Input
                                     type="file"
                                     accept="image/*"
@@ -224,7 +241,14 @@ export default function Create({ categories }: { categories: Category[] }) {
                                         const files = e.target.files;
 
                                         if (files && files.length > 0) {
-                                            setData('main_image', files[0]);
+                                            const file = files[0];
+                                            setData('main_image', file);
+                                            if (imagePreview) URL.revokeObjectURL(imagePreview);
+                                            setImagePreview(URL.createObjectURL(file));
+                                        } else {
+                                            setData('main_image', null);
+                                            if (imagePreview) URL.revokeObjectURL(imagePreview);
+                                            setImagePreview(null);
                                         }
                                     }}
                                     className="mt-1 cursor-pointer"

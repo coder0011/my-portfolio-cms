@@ -1,6 +1,6 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { ArrowLeft, Save, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,6 +67,13 @@ return '';
 
     const [tagsInput, setTagsInput] = useState((post.tags ?? []).join(', '));
     const [secondaryKeywordsInput, setSecondaryKeywordsInput] = useState((post.secondary_keywords ?? []).join(', '));
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (imagePreview) URL.revokeObjectURL(imagePreview);
+        };
+    }, [imagePreview]);
 
     const handleTagsChange = (val: string) => {
         setTagsInput(val);
@@ -238,16 +245,28 @@ return '';
 
                             <div>
                                 <Label>Main Image</Label>
-                                {post.main_image && (
-                                    <div className="mt-2 mb-3 relative max-w-[200px] rounded-lg overflow-hidden border border-sidebar-border">
-                                        <img 
-                                            src={post.main_image.startsWith('/') ? `${asset_url.replace(/\/$/, '')}${post.main_image}` : post.main_image} 
-                                            alt="Preview" 
-                                            className="w-full h-auto object-cover" 
-                                        />
-                                        <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Current</span>
-                                    </div>
-                                )}
+                                <div className="flex flex-wrap gap-4 mt-2 mb-3">
+                                    {post.main_image && (
+                                        <div className="relative max-w-[200px] rounded-lg overflow-hidden border border-sidebar-border p-1 bg-muted/10">
+                                            <img 
+                                                src={post.main_image.startsWith('/') ? `${asset_url.replace(/\/$/, '')}${post.main_image}` : post.main_image} 
+                                                alt="Current" 
+                                                className="w-full h-auto object-cover rounded" 
+                                            />
+                                            <span className="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded font-semibold">Current</span>
+                                        </div>
+                                    )}
+                                    {imagePreview && (
+                                        <div className="relative max-w-[200px] rounded-lg overflow-hidden border border-primary/40 p-1 bg-muted/10">
+                                            <img 
+                                                src={imagePreview} 
+                                                alt="Preview" 
+                                                className="w-full h-auto object-cover rounded" 
+                                            />
+                                            <span className="absolute bottom-1.5 right-1.5 bg-primary/80 text-white text-[9px] px-1.5 py-0.5 rounded font-semibold">Preview</span>
+                                        </div>
+                                    )}
+                                </div>
                                 <Input
                                     type="file"
                                     accept="image/*"
@@ -255,7 +274,14 @@ return '';
                                         const files = e.target.files;
 
                                         if (files && files.length > 0) {
-                                            setData('main_image', files[0]);
+                                            const file = files[0];
+                                            setData('main_image', file);
+                                            if (imagePreview) URL.revokeObjectURL(imagePreview);
+                                            setImagePreview(URL.createObjectURL(file));
+                                        } else {
+                                            setData('main_image', null);
+                                            if (imagePreview) URL.revokeObjectURL(imagePreview);
+                                            setImagePreview(null);
                                         }
                                     }}
                                     className="mt-1 cursor-pointer"

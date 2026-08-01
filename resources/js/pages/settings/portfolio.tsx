@@ -1,4 +1,5 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -36,6 +37,16 @@ type PageProps = {
 
 export default function Portfolio({ siteSettings }: PageProps) {
     const { asset_url } = usePage<any>().props;
+
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (logoPreview) URL.revokeObjectURL(logoPreview);
+            if (faviconPreview) URL.revokeObjectURL(faviconPreview);
+        };
+    }, [logoPreview, faviconPreview]);
 
     const { data, setData, post, processing, errors } = useForm({
         // Basic App Assets
@@ -127,12 +138,23 @@ export default function Portfolio({ siteSettings }: PageProps) {
                             <Label htmlFor="site_logo">Website Logo</Label>
                             <div className="flex items-center gap-4 mt-1">
                                 {siteSettings.site_logo && (
-                                    <div className="h-12 w-28 bg-muted rounded border border-sidebar-border/70 flex items-center justify-center p-2 overflow-hidden flex-shrink-0">
+                                    <div className="h-14 w-28 bg-muted rounded border border-sidebar-border/70 flex flex-col items-center justify-center p-1.5 overflow-hidden flex-shrink-0">
                                         <img 
                                             src={getFullUrl(siteSettings.site_logo)} 
                                             alt="Current Logo" 
-                                            className="h-full w-auto object-contain"
+                                            className="h-10 w-auto object-contain"
                                         />
+                                        <span className="text-[8px] text-muted-foreground mt-1">Current</span>
+                                    </div>
+                                )}
+                                {logoPreview && (
+                                    <div className="h-14 w-28 bg-muted rounded border border-primary/40 flex flex-col items-center justify-center p-1.5 overflow-hidden flex-shrink-0">
+                                        <img 
+                                            src={logoPreview} 
+                                            alt="New Logo Preview" 
+                                            className="h-10 w-auto object-contain"
+                                        />
+                                        <span className="text-[8px] text-primary mt-1">Preview</span>
                                     </div>
                                 )}
                                 <div className="flex-1">
@@ -140,7 +162,16 @@ export default function Portfolio({ siteSettings }: PageProps) {
                                         id="site_logo"
                                         type="file"
                                         accept="image/*"
-                                        onChange={(e) => setData('site_logo', e.target.files?.[0] || null)}
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0] || null;
+                                            setData('site_logo', file);
+                                            if (logoPreview) URL.revokeObjectURL(logoPreview);
+                                            if (file) {
+                                                setLogoPreview(URL.createObjectURL(file));
+                                            } else {
+                                                setLogoPreview(null);
+                                            }
+                                        }}
                                     />
                                     <p className="text-[10px] text-muted-foreground mt-1">Transparent PNG/SVG recommended. Max 2MB.</p>
                                 </div>
@@ -153,12 +184,23 @@ export default function Portfolio({ siteSettings }: PageProps) {
                             <Label htmlFor="site_favicon">Website Favicon</Label>
                             <div className="flex items-center gap-4 mt-1">
                                 {siteSettings.site_favicon && (
-                                    <div className="h-8 w-8 bg-muted rounded border border-sidebar-border/70 flex items-center justify-center p-1.5 flex-shrink-0">
+                                    <div className="h-12 w-12 bg-muted rounded border border-sidebar-border/70 flex flex-col items-center justify-center p-1 flex-shrink-0">
                                         <img 
                                             src={getFullUrl(siteSettings.site_favicon)} 
                                             alt="Current Favicon" 
-                                            className="h-full w-full object-contain"
+                                            className="h-6 w-6 object-contain"
                                         />
+                                        <span className="text-[8px] text-muted-foreground mt-1">Current</span>
+                                    </div>
+                                )}
+                                {faviconPreview && (
+                                    <div className="h-12 w-12 bg-muted rounded border border-primary/40 flex flex-col items-center justify-center p-1 flex-shrink-0">
+                                        <img 
+                                            src={faviconPreview} 
+                                            alt="New Favicon Preview" 
+                                            className="h-6 w-6 object-contain"
+                                        />
+                                        <span className="text-[8px] text-primary mt-1">Preview</span>
                                     </div>
                                 )}
                                 <div className="flex-1">
@@ -166,7 +208,16 @@ export default function Portfolio({ siteSettings }: PageProps) {
                                         id="site_favicon"
                                         type="file"
                                         accept="image/*"
-                                        onChange={(e) => setData('site_favicon', e.target.files?.[0] || null)}
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0] || null;
+                                            setData('site_favicon', file);
+                                            if (faviconPreview) URL.revokeObjectURL(faviconPreview);
+                                            if (file) {
+                                                setFaviconPreview(URL.createObjectURL(file));
+                                            } else {
+                                                setFaviconPreview(null);
+                                            }
+                                        }}
                                     />
                                     <p className="text-[10px] text-muted-foreground mt-1">Small square icon (16x16px or 32x32px). Max 1MB.</p>
                                 </div>
@@ -470,15 +521,21 @@ export default function Portfolio({ siteSettings }: PageProps) {
                                         <div className="grid gap-1.5 border-t border-sidebar-border/20 pt-2">
                                             <Label className="text-[10px] text-muted-foreground">Icon File (SVG, PNG, JPG)</Label>
                                             <div className="flex items-center gap-3">
-                                                {link.icon && (link.icon.startsWith('/') || link.icon.startsWith('http') || link.icon.startsWith('blob:')) && (
-                                                    <div className="h-8 w-8 bg-muted rounded border border-sidebar-border flex items-center justify-center p-1.5 flex-shrink-0">
-                                                        <img 
-                                                            src={getFullUrl(link.icon)} 
-                                                            alt="Icon Preview" 
-                                                            className="h-full w-full object-contain"
-                                                        />
-                                                    </div>
-                                                )}
+                                                {link.icon ? (
+                                                    (link.icon.startsWith('/') || link.icon.startsWith('http') || link.icon.startsWith('blob:')) ? (
+                                                        <div className="h-8 w-8 bg-muted rounded border border-sidebar-border flex items-center justify-center p-1.5 flex-shrink-0">
+                                                            <img 
+                                                                src={getFullUrl(link.icon)} 
+                                                                alt="Icon Preview" 
+                                                                className="h-full w-full object-contain"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-8 px-2 bg-primary/10 text-primary border border-primary/20 rounded flex items-center justify-center flex-shrink-0">
+                                                            <span className="text-[9px] uppercase font-bold tracking-wider">{link.icon}</span>
+                                                        </div>
+                                                    )
+                                                ) : null}
                                                 <div className="flex-1">
                                                     <Input
                                                         type="file"

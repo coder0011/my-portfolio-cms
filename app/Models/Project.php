@@ -43,7 +43,7 @@ class Project extends Model
             return [];
         }
 
-        $cmsDir = public_path('storage/' . $this->project_folder);
+        $cmsDir = public_path('storage/frontend/images/portfolio/' . $this->project_folder);
         $portfolioPath = env('PORTFOLIO_PUBLIC_PATH', base_path('../my-portfolio/public'));
         $frontendDir = rtrim($portfolioPath, '/') . '/images/portfolio/' . $this->project_folder;
 
@@ -65,7 +65,7 @@ class Project extends Model
 
         if (is_array($files)) {
             return array_map(function ($file) {
-                return '/storage/' . $this->project_folder . '/' . basename($file);
+                return '/storage/frontend/images/portfolio/' . $this->project_folder . '/' . basename($file);
             }, $files);
         }
 

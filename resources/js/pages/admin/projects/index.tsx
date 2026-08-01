@@ -1,7 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import admin from '@/routes/admin';
 import { Plus, Edit, Trash, FolderGit2, Link as LinkIcon, Star, GripVertical } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -57,11 +57,21 @@ export default function Index({ projects }: { projects: Project[] }) {
         deleted_images: [] as string[],
     });
 
+    const [newPreviews, setNewPreviews] = useState<string[]>([]);
+
+    useEffect(() => {
+        return () => {
+            newPreviews.forEach(URL.revokeObjectURL);
+        };
+    }, [newPreviews]);
+
     const openCreateModal = () => {
         reset();
         clearErrors();
         setEditId(null);
         setData('_method', 'POST');
+        newPreviews.forEach(URL.revokeObjectURL);
+        setNewPreviews([]);
         setIsOpen(true);
     };
 
@@ -83,6 +93,8 @@ export default function Index({ projects }: { projects: Project[] }) {
             new_images: [],
             deleted_images: [],
         });
+        newPreviews.forEach(URL.revokeObjectURL);
+        setNewPreviews([]);
         setIsOpen(true);
     };
 
@@ -95,6 +107,8 @@ export default function Index({ projects }: { projects: Project[] }) {
             onSuccess: () => {
                 setIsOpen(false);
                 reset();
+                newPreviews.forEach(URL.revokeObjectURL);
+                setNewPreviews([]);
             }
         });
     };
@@ -317,14 +331,35 @@ export default function Index({ projects }: { projects: Project[] }) {
                                     accept="image/*"
                                     onChange={(e) => {
                                         if (e.target.files) {
-                                            setData('new_images', Array.from(e.target.files));
+                                            const filesArray = Array.from(e.target.files);
+                                            setData('new_images', filesArray);
+                                            
+                                            newPreviews.forEach(URL.revokeObjectURL);
+                                            const previews = filesArray.map(file => URL.createObjectURL(file));
+                                            setNewPreviews(previews);
                                         }
                                     }}
                                     className="bg-background border-input text-foreground cursor-pointer"
                                 />
                                 <InputError message={errors.new_images} />
+                                {newPreviews.length > 0 && (
+                                    <div className="space-y-2 mt-2">
+                                        <Label className="text-foreground text-xs font-semibold">New Selected Screenshots Preview</Label>
+                                        <div className="grid grid-cols-4 gap-2 border border-sidebar-border/40 p-2 rounded bg-muted/5 max-h-[160px] overflow-y-auto">
+                                            {newPreviews.map((path, idx) => (
+                                                <div key={idx} className="relative group rounded border border-sidebar-border overflow-hidden p-1 flex items-center justify-center bg-muted/10">
+                                                    <img 
+                                                        src={path} 
+                                                        alt={`New Preview ${idx + 1}`} 
+                                                        className="h-12 w-auto object-contain rounded"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                                 {data.new_images && data.new_images.length > 0 && (
-                                    <p className="text-[10px] text-muted-foreground">
+                                    <p className="text-[10px] text-muted-foreground mt-1">
                                         Selected {data.new_images.length} images to upload on save.
                                     </p>
                                 )}
