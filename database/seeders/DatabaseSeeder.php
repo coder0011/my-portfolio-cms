@@ -127,7 +127,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($settings as $key => $value) {
-            Setting::set($key, $value);
+            Setting::set($key, is_string($value) ? $value : null);
         }
 
         // Seed Education Timeline

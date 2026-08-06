@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class SettingController extends Controller
 {
@@ -57,12 +58,12 @@ class SettingController extends Controller
             if ($socialLinksString) {
                 $socialLinks = json_decode($socialLinksString, true) ?: [];
                 foreach ($socialLinks as &$link) {
-                    if (!empty($link['icon']) && (str_starts_with($link['icon'], '/storage') || str_starts_with($link['icon'], 'storage/'))) {
+                    if (! empty($link['icon']) && (str_starts_with($link['icon'], '/storage') || str_starts_with($link['icon'], 'storage/'))) {
                         $link['icon'] = asset($link['icon']);
                     }
                 }
                 unset($link);
-                
+
                 usort($socialLinks, function ($a, $b) {
                     return ($a['sort_order'] ?? 0) <=> ($b['sort_order'] ?? 0);
                 });

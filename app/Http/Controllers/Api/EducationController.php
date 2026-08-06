@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Education;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class EducationController extends Controller
 {
@@ -13,7 +14,7 @@ class EducationController extends Controller
      */
     public function index(): JsonResponse
     {
-        $educations = \Illuminate\Support\Facades\Cache::rememberForever('portfolio_educations', function () {
+        $educations = Cache::rememberForever('portfolio_educations', function () {
             return Education::orderBy('sort_order', 'asc')
                 ->orderBy('id', 'asc')
                 ->get();

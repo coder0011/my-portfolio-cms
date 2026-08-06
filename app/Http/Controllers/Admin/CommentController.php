@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\ActivityLogger;
 use App\Http\Controllers\Controller;
 use App\Jobs\DispatchWebhookJob;
 use App\Models\Comment;
@@ -54,6 +55,8 @@ class CommentController extends Controller
             ]);
         }
 
+        ActivityLogger::log('COMMENT_APPROVE_TOGGLED', ($comment->approved ? 'Approved' : 'Disapproved')." comment by '{$comment->name}'");
+
         return redirect()->back()->with('success', 'Comment status updated successfully!');
     }
 
@@ -64,7 +67,10 @@ class CommentController extends Controller
     {
         Gate::authorize('comments.delete');
 
+        $name = $comment->name;
         $comment->delete();
+
+        ActivityLogger::log('COMMENT_DELETED', "Deleted comment by '{$name}'");
 
         return redirect()->back()->with('success', 'Comment deleted successfully!');
     }
@@ -83,6 +89,8 @@ class CommentController extends Controller
         $comment->update([
             'comment' => $validated['comment'],
         ]);
+
+        ActivityLogger::log('COMMENT_UPDATED', "Updated comment body of '{$comment->name}'");
 
         return redirect()->back()->with('success', 'Comment updated successfully!');
     }
@@ -106,6 +114,8 @@ class CommentController extends Controller
             'user_id' => null, // Admin user
             'approved' => true, // Auto-approved
         ]);
+
+        ActivityLogger::log('COMMENT_REPLIED', "Replied to comment by '{$comment->name}'");
 
         return redirect()->back()->with('success', 'Reply posted successfully!');
     }

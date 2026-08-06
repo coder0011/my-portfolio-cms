@@ -27,3 +27,33 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# MemPalace per-project files (issue #185)
+mempalace.yaml
+entities.json
+# Added by code-review-graph
+.code-review-graph/
+
+# Graphify output
+graphify-out/
+
+# Local AI agent caches and configurations
+.claude/
+.gemini/
+.kiro/
+.qoder/
+.agents/
+
+# AI Assistant rules and configs
+*rules
+.mcp.json
+.opencode.json
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+QODER.md
+.github/code-review-graph.instruction.md
+
+# Local utility scripts
+sync_tools.py
+install.ps1

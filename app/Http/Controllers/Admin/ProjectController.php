@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\ActivityLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Services\ImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -31,7 +33,7 @@ class ProjectController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ImageService $imageService): RedirectResponse
     {
         Gate::authorize('projects.manage');
 
@@ -58,21 +60,19 @@ class ProjectController extends Controller
 
         // Handle multiple image uploads
         if ($request->hasFile('new_images')) {
-            $cmsDir = public_path('storage/' . $projectFolder);
-            @mkdir($cmsDir, 0755, true);
-
             foreach ($request->file('new_images') as $file) {
-                $filename = strtolower($projectFolder . '-' . date('Y-m-d') . '-' . uniqid() . '.' . $file->getClientOriginalExtension());
-                $file->move($cmsDir, $filename);
-                
+                $url = $imageService->upload($file, 'public/frontend/images/portfolio/'.$projectFolder);
+
                 // If there's no thumbnail set, mark the first uploaded image as thumbnail
                 if (empty($validated['image_path'])) {
-                    $validated['image_path'] = '/storage/' . $projectFolder . '/' . $filename;
+                    $validated['image_path'] = $url;
                 }
             }
         }
 
-        Project::create($validated);
+        $project = Project::create($validated);
+
+        ActivityLogger::log('PROJECT_CREATED', "Added project '{$project->title}'");
 
         return redirect()->route('admin.projects.index')->with('success', 'Project created successfully!');
     }
@@ -80,7 +80,7 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Project $project): RedirectResponse
+    public function update(Request $request, Project $project, ImageService $imageService): RedirectResponse
     {
         Gate::authorize('projects.manage');
 
@@ -107,14 +107,14 @@ class ProjectController extends Controller
             $validated['project_folder'] = $projectFolder;
         }
 
-        $cmsDir = public_path('storage/' . $projectFolder);
+        $cmsDir = public_path('storage/frontend/images/portfolio/'.$projectFolder);
 
         // Handle deleted images
         if ($request->has('deleted_images')) {
             foreach ($request->input('deleted_images') as $imagePath) {
                 $filename = basename($imagePath);
-                @unlink($cmsDir . '/' . $filename);
-                
+                @unlink($cmsDir.'/'.$filename);
+
                 // If deleted image was the thumbnail, reset image_path
                 if ($project->image_path === $imagePath || ($validated['image_path'] ?? null) === $imagePath) {
                     $validated['image_path'] = null;
@@ -124,20 +124,19 @@ class ProjectController extends Controller
 
         // Handle new uploads
         if ($request->hasFile('new_images')) {
-            @mkdir($cmsDir, 0755, true);
-
             foreach ($request->file('new_images') as $file) {
-                $filename = strtolower($projectFolder . '-' . date('Y-m-d') . '-' . uniqid() . '.' . $file->getClientOriginalExtension());
-                $file->move($cmsDir, $filename);
+                $url = $imageService->upload($file, 'public/frontend/images/portfolio/'.$projectFolder);
 
                 // If thumbnail is empty, default to the first newly uploaded image
                 if (empty($validated['image_path']) && empty($project->image_path)) {
-                    $validated['image_path'] = '/storage/' . $projectFolder . '/' . $filename;
+                    $validated['image_path'] = $url;
                 }
             }
         }
 
         $project->update($validated);
+
+        ActivityLogger::log('PROJECT_UPDATED', "Updated project details of '{$project->title}'");
 
         return redirect()->route('admin.projects.index')->with('success', 'Project updated successfully!');
     }
@@ -149,7 +148,10 @@ class ProjectController extends Controller
     {
         Gate::authorize('projects.manage');
 
+        $title = $project->title;
         $project->delete();
+
+        ActivityLogger::log('PROJECT_DELETED', "Deleted project '{$title}'");
 
         return redirect()->route('admin.projects.index')->with('success', 'Project deleted successfully!');
     }

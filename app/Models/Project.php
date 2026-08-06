@@ -36,6 +36,8 @@ class Project extends Model
 
     /**
      * Get list of screenshots paths, syncing them from frontend folder to CMS public folder if needed.
+     *
+     * @return array<string>
      */
     public function getScreenshotsAttribute(): array
     {
@@ -43,29 +45,29 @@ class Project extends Model
             return [];
         }
 
-        $cmsDir = public_path('storage/frontend/images/portfolio/' . $this->project_folder);
-        $portfolioPath = env('PORTFOLIO_PUBLIC_PATH', base_path('../my-portfolio/public'));
-        $frontendDir = rtrim($portfolioPath, '/') . '/images/portfolio/' . $this->project_folder;
+        $cmsDir = public_path('storage/frontend/images/portfolio/'.$this->project_folder);
+        $portfolioPath = (string) config('app.portfolio_public_path', base_path('../my-portfolio/public'));
+        $frontendDir = rtrim($portfolioPath, '/').'/images/portfolio/'.$this->project_folder;
 
         // Auto-sync frontend screenshots to CMS public storage dir if missing
-        if (is_dir($frontendDir) && !is_dir($cmsDir)) {
+        if (is_dir($frontendDir) && ! is_dir($cmsDir)) {
             @mkdir($cmsDir, 0755, true);
-            $frontendFiles = glob($frontendDir . '/*.{webp,png,jpg,jpeg}', GLOB_BRACE);
+            $frontendFiles = glob($frontendDir.'/*.{webp,png,jpg,jpeg}', GLOB_BRACE);
             if (is_array($frontendFiles)) {
                 foreach ($frontendFiles as $fFile) {
-                    @copy($fFile, $cmsDir . '/' . basename($fFile));
+                    @copy($fFile, $cmsDir.'/'.basename($fFile));
                 }
             }
         }
 
         $files = [];
         if (is_dir($cmsDir)) {
-            $files = glob($cmsDir . '/*.{webp,png,jpg,jpeg}', GLOB_BRACE);
+            $files = glob($cmsDir.'/*.{webp,png,jpg,jpeg}', GLOB_BRACE);
         }
 
         if (is_array($files)) {
             return array_map(function ($file) {
-                return '/storage/frontend/images/portfolio/' . $this->project_folder . '/' . basename($file);
+                return '/storage/frontend/images/portfolio/'.$this->project_folder.'/'.basename($file);
             }, $files);
         }
 

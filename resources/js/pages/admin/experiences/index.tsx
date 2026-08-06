@@ -1,19 +1,18 @@
 import { Head, useForm } from '@inertiajs/react';
-import admin from '@/routes/admin';
 import { Plus, Edit, Trash, Briefcase } from 'lucide-react';
 import { useState } from 'react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogFooter
+    DialogFooter,
 } from '@/components/ui/dialog';
-import Heading from '@/components/heading';
-import InputError from '@/components/input-error';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import admin from '@/routes/admin';
 
 interface Experience {
     id: number;
@@ -28,7 +27,17 @@ export default function Index({ experiences }: { experiences: Experience[] }) {
     const [isOpen, setIsOpen] = useState(false);
     const [editId, setEditId] = useState<number | null>(null);
 
-    const { data, setData, post, put, delete: destroy, processing, errors, reset, clearErrors } = useForm({
+    const {
+        data,
+        setData,
+        post,
+        put,
+        delete: destroy,
+        processing,
+        errors,
+        reset,
+        clearErrors,
+    } = useForm({
         job_title: '',
         company: '',
         period: '',
@@ -58,19 +67,20 @@ export default function Index({ experiences }: { experiences: Experience[] }) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
         if (editId) {
             put(admin.experiences.update(editId).url, {
                 onSuccess: () => {
                     setIsOpen(false);
                     reset();
-                }
+                },
             });
         } else {
             post(admin.experiences.store().url, {
                 onSuccess: () => {
                     setIsOpen(false);
                     reset();
-                }
+                },
             });
         }
     };
@@ -89,9 +99,12 @@ export default function Index({ experiences }: { experiences: Experience[] }) {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Professional Timeline</h1>
-                        <p className="text-muted-foreground text-sm">
-                            Manage your professional work history and titles shown in the portfolio timeline.
+                        <h1 className="text-2xl font-bold tracking-tight">
+                            Professional Timeline
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            Manage your professional work history and titles
+                            shown in the portfolio timeline.
                         </p>
                     </div>
                     <Button onClick={openCreateModal} className="gap-2">
@@ -101,12 +114,12 @@ export default function Index({ experiences }: { experiences: Experience[] }) {
                 </div>
 
                 {/* Table card */}
-                <div className="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm overflow-hidden">
+                <div className="overflow-hidden rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse text-sm">
+                        <table className="w-full border-collapse text-left text-sm">
                             <thead>
                                 <tr className="border-b border-sidebar-border bg-muted/40 font-medium text-muted-foreground">
-                                    <th className="p-4 w-[40px]">Order</th>
+                                    <th className="w-[40px] p-4">Order</th>
                                     <th className="p-4">Job Title</th>
                                     <th className="p-4">Company</th>
                                     <th className="p-4">Period</th>
@@ -116,14 +129,22 @@ export default function Index({ experiences }: { experiences: Experience[] }) {
                             <tbody>
                                 {experiences.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="p-8 text-center text-muted-foreground">
-                                            No experience records found. Click "Add Experience" to add your professional history!
+                                        <td
+                                            colSpan={5}
+                                            className="p-8 text-center text-muted-foreground"
+                                        >
+                                            No experience records found. Click
+                                            "Add Experience" to add your
+                                            professional history!
                                         </td>
                                     </tr>
                                 ) : (
                                     experiences.map((exp) => (
-                                        <tr key={exp.id} className="border-b border-sidebar-border/50 hover:bg-muted/20 transition-colors">
-                                            <td className="p-4 font-mono text-xs text-muted-foreground text-center">
+                                        <tr
+                                            key={exp.id}
+                                            className="border-b border-sidebar-border/50 transition-colors hover:bg-muted/20"
+                                        >
+                                            <td className="p-4 text-center font-mono text-xs text-muted-foreground">
                                                 {exp.sort_order}
                                             </td>
                                             <td className="p-4">
@@ -132,24 +153,36 @@ export default function Index({ experiences }: { experiences: Experience[] }) {
                                                     {exp.job_title}
                                                 </div>
                                                 {exp.description && (
-                                                    <div className="text-xs text-muted-foreground mt-1 max-w-[400px] truncate">
+                                                    <div className="mt-1 max-w-[400px] truncate text-xs text-muted-foreground">
                                                         {exp.description}
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="p-4 text-foreground font-medium">
+                                            <td className="p-4 font-medium text-foreground">
                                                 {exp.company}
                                             </td>
-                                            <td className="p-4 text-muted-foreground whitespace-nowrap">
+                                            <td className="p-4 whitespace-nowrap text-muted-foreground">
                                                 {exp.period}
                                             </td>
                                             <td className="p-4 text-right whitespace-nowrap">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <Button variant="ghost" size="icon" onClick={() => openEditModal(exp)}>
-                                                        <Edit className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            openEditModal(exp)
+                                                        }
+                                                    >
+                                                        <Edit className="h-4 w-4 text-muted-foreground transition-colors hover:text-primary" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(exp.id)}>
-                                                        <Trash className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            handleDelete(exp.id)
+                                                        }
+                                                    >
+                                                        <Trash className="h-4 w-4 text-muted-foreground transition-colors hover:text-destructive" />
                                                     </Button>
                                                 </div>
                                             </td>
@@ -164,87 +197,127 @@ export default function Index({ experiences }: { experiences: Experience[] }) {
 
             {/* CRUD Modal Dialog */}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent className="max-w-md bg-sidebar text-sidebar-foreground border-sidebar-border">
+                <DialogContent className="max-w-md border-sidebar-border bg-sidebar text-sidebar-foreground">
                     <DialogHeader>
                         <DialogTitle className="text-foreground">
                             {editId ? 'Edit Experience' : 'Add Experience'}
                         </DialogTitle>
                     </DialogHeader>
 
-                    <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+                    <form onSubmit={handleSubmit} className="mt-2 space-y-4">
                         {/* Job Title */}
                         <div className="grid gap-2">
-                            <Label htmlFor="job_title" className="text-foreground">Job Title</Label>
+                            <Label
+                                htmlFor="job_title"
+                                className="text-foreground"
+                            >
+                                Job Title
+                            </Label>
                             <Input
                                 id="job_title"
                                 value={data.job_title}
-                                onChange={(e) => setData('job_title', e.target.value)}
+                                onChange={(e) =>
+                                    setData('job_title', e.target.value)
+                                }
                                 required
                                 placeholder="Sr. Software Engineer"
-                                className="bg-background border-input text-foreground"
+                                className="border-input bg-background text-foreground"
                             />
                             <InputError message={errors.job_title} />
                         </div>
 
                         {/* Company Name */}
                         <div className="grid gap-2">
-                            <Label htmlFor="company" className="text-foreground">Company Name</Label>
+                            <Label
+                                htmlFor="company"
+                                className="text-foreground"
+                            >
+                                Company Name
+                            </Label>
                             <Input
                                 id="company"
                                 value={data.company}
-                                onChange={(e) => setData('company', e.target.value)}
+                                onChange={(e) =>
+                                    setData('company', e.target.value)
+                                }
                                 required
                                 placeholder="Kadam Technologies P.V.T L.T.D"
-                                className="bg-background border-input text-foreground"
+                                className="border-input bg-background text-foreground"
                             />
                             <InputError message={errors.company} />
                         </div>
 
                         {/* Period */}
                         <div className="grid gap-2">
-                            <Label htmlFor="period" className="text-foreground">Time Period</Label>
+                            <Label htmlFor="period" className="text-foreground">
+                                Time Period
+                            </Label>
                             <Input
                                 id="period"
                                 value={data.period}
-                                onChange={(e) => setData('period', e.target.value)}
+                                onChange={(e) =>
+                                    setData('period', e.target.value)
+                                }
                                 required
                                 placeholder="2021 - Present"
-                                className="bg-background border-input text-foreground"
+                                className="border-input bg-background text-foreground"
                             />
                             <InputError message={errors.period} />
                         </div>
 
                         {/* Sort Order */}
                         <div className="grid gap-2">
-                            <Label htmlFor="sort_order" className="text-foreground">Display Sort Order</Label>
+                            <Label
+                                htmlFor="sort_order"
+                                className="text-foreground"
+                            >
+                                Display Sort Order
+                            </Label>
                             <Input
                                 id="sort_order"
                                 type="number"
                                 value={data.sort_order}
-                                onChange={(e) => setData('sort_order', parseInt(e.target.value) || 0)}
+                                onChange={(e) =>
+                                    setData(
+                                        'sort_order',
+                                        parseInt(e.target.value) || 0,
+                                    )
+                                }
                                 required
                                 placeholder="1"
-                                className="bg-background border-input text-foreground"
+                                className="border-input bg-background text-foreground"
                             />
                             <InputError message={errors.sort_order} />
                         </div>
 
                         {/* Description */}
                         <div className="grid gap-2">
-                            <Label htmlFor="description" className="text-foreground">Description & Key Contributions</Label>
+                            <Label
+                                htmlFor="description"
+                                className="text-foreground"
+                            >
+                                Description & Key Contributions
+                            </Label>
                             <textarea
                                 id="description"
                                 value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
+                                onChange={(e) =>
+                                    setData('description', e.target.value)
+                                }
                                 placeholder="Add notes, key achievements, technologies used, or bullet point details..."
                                 rows={4}
-                                className="w-full rounded-md border border-input bg-background p-2.5 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+                                className="w-full rounded-md border border-input bg-background p-2.5 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
                             />
                             <InputError message={errors.description} />
                         </div>
 
-                        <DialogFooter className="pt-4 border-t border-sidebar-border/50">
-                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="bg-background text-foreground border-input">
+                        <DialogFooter className="border-t border-sidebar-border/50 pt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsOpen(false)}
+                                className="border-input bg-background text-foreground"
+                            >
                                 Cancel
                             </Button>
                             <Button type="submit" disabled={processing}>

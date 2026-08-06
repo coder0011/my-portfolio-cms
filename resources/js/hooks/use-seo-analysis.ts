@@ -60,7 +60,9 @@ export function useSeoAnalysis(input: SeoInput): SeoAnalysisResult {
         if (kw && body) {
             const words = body.toLowerCase().split(/\s+/).filter(Boolean);
             const escapedKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const matches = body.toLowerCase().match(new RegExp(`\\b${escapedKw}\\b`, 'g'));
+            const matches = body
+                .toLowerCase()
+                .match(new RegExp(`\\b${escapedKw}\\b`, 'g'));
             const matchCount = matches ? matches.length : 0;
             density = words.length > 0 ? (matchCount / words.length) * 100 : 0;
         }
@@ -118,5 +120,12 @@ export function useSeoAnalysis(input: SeoInput): SeoAnalysisResult {
             hasAltTags,
             score,
         };
-    }, [input.title, input.meta_title, input.excerpt, input.meta_description, input.focus_keyword, input.body]);
+    }, [
+        input.title,
+        input.meta_title,
+        input.excerpt,
+        input.meta_description,
+        input.focus_keyword,
+        input.body,
+    ]);
 }

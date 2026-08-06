@@ -15,7 +15,7 @@ type PageProps = {
         user: {
             avatar?: string | null;
             bio?: string | null;
-        }
+        };
     };
     mustVerifyEmail: boolean;
     status?: string;
@@ -25,7 +25,11 @@ type PageProps = {
     };
 };
 
-export default function Profile({ mustVerifyEmail, status, adminSettings }: PageProps) {
+export default function Profile({
+    mustVerifyEmail,
+    status,
+    adminSettings,
+}: PageProps) {
     const { auth, asset_url } = usePage<any>().props;
 
     const { data, setData, post, processing, errors } = useForm({
@@ -70,16 +74,16 @@ export default function Profile({ mustVerifyEmail, status, adminSettings }: Page
                     description="Update your personal account details, avatar, and contact bio information."
                 />
 
-                <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
+                <form onSubmit={handleSubmit} className="max-w-xl space-y-6">
                     {/* Avatar Upload */}
                     <div className="grid gap-2">
                         <Label htmlFor="avatar">Profile Avatar</Label>
-                        <div className="flex items-center gap-4 mt-1">
+                        <div className="mt-1 flex items-center gap-4">
                             {auth.user.avatar && (
-                                <div className="h-16 w-16 rounded-full overflow-hidden border border-sidebar-border/70 flex-shrink-0">
-                                    <img 
-                                        src={getFullUrl(auth.user.avatar)} 
-                                        alt="Current Avatar" 
+                                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border border-sidebar-border/70">
+                                    <img
+                                        src={getFullUrl(auth.user.avatar)}
+                                        alt="Current Avatar"
                                         className="h-full w-full object-cover"
                                     />
                                 </div>
@@ -89,10 +93,18 @@ export default function Profile({ mustVerifyEmail, status, adminSettings }: Page
                                     id="avatar"
                                     type="file"
                                     accept="image/*"
-                                    onChange={(e) => setData('avatar', e.target.files?.[0] || null)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'avatar',
+                                            e.target.files?.[0] || null,
+                                        )
+                                    }
                                     className="max-w-xs"
                                 />
-                                <p className="text-[10px] text-muted-foreground mt-1">Square image, recommended 150x150px. Max 2MB.</p>
+                                <p className="mt-1 text-[10px] text-muted-foreground">
+                                    Square image, recommended 150x150px. Max
+                                    2MB.
+                                </p>
                             </div>
                         </div>
                         <InputError message={errors.avatar} />
@@ -136,44 +148,53 @@ export default function Profile({ mustVerifyEmail, status, adminSettings }: Page
                             onChange={(e) => setData('bio', e.target.value)}
                             placeholder="Write a short bio about yourself..."
                             rows={3}
-                            className="w-full rounded-md border border-input bg-background p-2.5 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+                            className="w-full rounded-md border border-input bg-background p-2.5 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
                         />
                         <InputError message={errors.bio} />
                     </div>
 
-                    {mustVerifyEmail && auth.user.email_verified_at === null && (
-                        <div className="bg-amber-500/5 border border-amber-500/20 p-3 rounded-lg">
-                            <p className="text-xs text-muted-foreground">
-                                Your email address is unverified.{' '}
-                                <Link
-                                    href={send()}
-                                    as="button"
-                                    className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                                >
-                                    Click here to re-send verification email.
-                                </Link>
-                            </p>
-                            {status === 'verification-link-sent' && (
-                                <div className="mt-2 text-xs font-medium text-green-600">
-                                    A new verification link has been sent to your email address.
-                                </div>
-                            )}
-                        </div>
-                    )}
+                    {mustVerifyEmail &&
+                        auth.user.email_verified_at === null && (
+                            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+                                <p className="text-xs text-muted-foreground">
+                                    Your email address is unverified.{' '}
+                                    <Link
+                                        href={send()}
+                                        as="button"
+                                        className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
+                                    >
+                                        Click here to re-send verification
+                                        email.
+                                    </Link>
+                                </p>
+                                {status === 'verification-link-sent' && (
+                                    <div className="mt-2 text-xs font-medium text-green-600">
+                                        A new verification link has been sent to
+                                        your email address.
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                     {/* Dashboard Branding */}
-                    <div className="space-y-4 border-t border-sidebar-border/50 pt-6 mt-6">
-                        <h3 className="text-sm font-semibold text-foreground">Dashboard Branding</h3>
+                    <div className="mt-6 space-y-4 border-t border-sidebar-border/50 pt-6">
+                        <h3 className="text-sm font-semibold text-foreground">
+                            Dashboard Branding
+                        </h3>
 
                         {/* Admin Logo */}
                         <div className="grid gap-2">
-                            <Label htmlFor="admin_logo">Admin Dashboard Logo</Label>
-                            <div className="flex items-center gap-4 mt-1">
+                            <Label htmlFor="admin_logo">
+                                Admin Dashboard Logo
+                            </Label>
+                            <div className="mt-1 flex items-center gap-4">
                                 {adminSettings?.admin_logo && (
-                                    <div className="h-12 w-28 bg-muted rounded border border-sidebar-border/70 flex items-center justify-center p-2 overflow-hidden flex-shrink-0">
-                                        <img 
-                                            src={getFullUrl(adminSettings.admin_logo)} 
-                                            alt="Current Admin Logo" 
+                                    <div className="flex h-12 w-28 flex-shrink-0 items-center justify-center overflow-hidden rounded border border-sidebar-border/70 bg-muted p-2">
+                                        <img
+                                            src={getFullUrl(
+                                                adminSettings.admin_logo,
+                                            )}
+                                            alt="Current Admin Logo"
                                             className="max-h-full max-w-full object-contain"
                                         />
                                     </div>
@@ -183,10 +204,17 @@ export default function Profile({ mustVerifyEmail, status, adminSettings }: Page
                                         id="admin_logo"
                                         type="file"
                                         accept=".svg,.png,.jpg,.jpeg,.webp"
-                                        onChange={(e) => setData('admin_logo', e.target.files?.[0] || null)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'admin_logo',
+                                                e.target.files?.[0] || null,
+                                            )
+                                        }
                                         className="max-w-xs"
                                     />
-                                    <p className="text-[10px] text-muted-foreground mt-1">Max 2MB. SVG, PNG, JPG, WebP supported.</p>
+                                    <p className="mt-1 text-[10px] text-muted-foreground">
+                                        Max 2MB. SVG, PNG, JPG, WebP supported.
+                                    </p>
                                 </div>
                             </div>
                             <InputError message={errors.admin_logo} />
@@ -194,13 +222,17 @@ export default function Profile({ mustVerifyEmail, status, adminSettings }: Page
 
                         {/* Admin Icon */}
                         <div className="grid gap-2">
-                            <Label htmlFor="admin_icon">Admin Dashboard Icon</Label>
-                            <div className="flex items-center gap-4 mt-1">
+                            <Label htmlFor="admin_icon">
+                                Admin Dashboard Icon
+                            </Label>
+                            <div className="mt-1 flex items-center gap-4">
                                 {adminSettings?.admin_icon && (
-                                    <div className="h-10 w-10 bg-muted rounded border border-sidebar-border/70 flex items-center justify-center p-1 overflow-hidden flex-shrink-0">
-                                        <img 
-                                            src={getFullUrl(adminSettings.admin_icon)} 
-                                            alt="Current Admin Icon" 
+                                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded border border-sidebar-border/70 bg-muted p-1">
+                                        <img
+                                            src={getFullUrl(
+                                                adminSettings.admin_icon,
+                                            )}
+                                            alt="Current Admin Icon"
                                             className="h-full w-full object-contain"
                                         />
                                     </div>
@@ -210,10 +242,18 @@ export default function Profile({ mustVerifyEmail, status, adminSettings }: Page
                                         id="admin_icon"
                                         type="file"
                                         accept=".svg,.png,.jpg,.jpeg,.webp"
-                                        onChange={(e) => setData('admin_icon', e.target.files?.[0] || null)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'admin_icon',
+                                                e.target.files?.[0] || null,
+                                            )
+                                        }
                                         className="max-w-xs"
                                     />
-                                    <p className="text-[10px] text-muted-foreground mt-1">Square image (e.g. 32x32px). Max 1MB. SVG, PNG, JPG, WebP supported.</p>
+                                    <p className="mt-1 text-[10px] text-muted-foreground">
+                                        Square image (e.g. 32x32px). Max 1MB.
+                                        SVG, PNG, JPG, WebP supported.
+                                    </p>
                                 </div>
                             </div>
                             <InputError message={errors.admin_icon} />
@@ -229,7 +269,7 @@ export default function Profile({ mustVerifyEmail, status, adminSettings }: Page
                 </form>
             </div>
 
-            <div className="mt-12 pt-8 border-t border-sidebar-border/50 max-w-xl">
+            <div className="mt-12 max-w-xl border-t border-sidebar-border/50 pt-8">
                 <DeleteUser />
             </div>
         </>

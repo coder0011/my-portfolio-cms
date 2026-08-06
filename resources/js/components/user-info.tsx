@@ -13,9 +13,10 @@ export function UserInfo({
     const getInitials = useInitials();
     const { asset_url } = usePage<any>().props;
 
-    const avatarSrc = user.avatar && user.avatar.startsWith('/') 
-        ? `${asset_url.replace(/\/$/, '')}${user.avatar}` 
-        : user.avatar;
+    const avatarSrc =
+        user.avatar && user.avatar.startsWith('/')
+            ? `${asset_url.replace(/\/$/, '')}${user.avatar}`
+            : user.avatar;
 
     return (
         <>

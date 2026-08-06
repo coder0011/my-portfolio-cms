@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\ActivityLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Experience;
 use Illuminate\Http\RedirectResponse;
@@ -43,7 +44,9 @@ class ExperienceController extends Controller
             'sort_order' => 'nullable|integer',
         ]);
 
-        Experience::create($validated);
+        $experience = Experience::create($validated);
+
+        ActivityLogger::log('EXPERIENCE_CREATED', "Added professional experience '{$experience->job_title}' at '{$experience->company}'");
 
         return redirect()->route('admin.experiences.index')->with('success', 'Experience entry created successfully!');
     }
@@ -65,6 +68,8 @@ class ExperienceController extends Controller
 
         $experience->update($validated);
 
+        ActivityLogger::log('EXPERIENCE_UPDATED', "Updated professional experience '{$experience->job_title}' at '{$experience->company}'");
+
         return redirect()->route('admin.experiences.index')->with('success', 'Experience entry updated successfully!');
     }
 
@@ -75,7 +80,11 @@ class ExperienceController extends Controller
     {
         Gate::authorize('experiences.manage');
 
+        $title = $experience->job_title;
+        $company = $experience->company;
         $experience->delete();
+
+        ActivityLogger::log('EXPERIENCE_DELETED', "Deleted professional experience '{$title}' at '{$company}'");
 
         return redirect()->route('admin.experiences.index')->with('success', 'Experience entry deleted successfully!');
     }

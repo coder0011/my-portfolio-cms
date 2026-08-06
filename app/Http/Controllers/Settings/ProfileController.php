@@ -26,7 +26,7 @@ class ProfileController extends Controller
             'adminSettings' => [
                 'admin_logo' => Setting::get('admin_logo'),
                 'admin_icon' => Setting::get('admin_icon'),
-            ]
+            ],
         ]);
     }
 
@@ -55,12 +55,12 @@ class ProfileController extends Controller
         }
 
         if ($request->hasFile('avatar')) {
-            if ($user->avatar && str_starts_with($user->avatar, '/storage')) {
-                Storage::delete(str_replace('/storage', 'public', $user->avatar));
+            if ($user->avatar && str_starts_with($user->avatar, '/storage/')) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $user->avatar));
             }
-            $path = $request->file('avatar')->store('public/blogs/avatars');
+            $path = $request->file('avatar')->store('blogs/avatars', 'public');
             if ($path !== false) {
-                $user->avatar = Storage::url($path);
+                $user->avatar = '/storage/'.$path;
             }
         }
 
@@ -69,34 +69,34 @@ class ProfileController extends Controller
         // Handle Admin Brand Logo
         if ($request->hasFile('admin_logo')) {
             $oldLogo = Setting::get('admin_logo');
-            if ($oldLogo && str_starts_with($oldLogo, '/storage')) {
-                Storage::delete(str_replace('/storage', 'public', $oldLogo));
+            if ($oldLogo && str_starts_with($oldLogo, '/storage/')) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $oldLogo));
             }
 
             $file = $request->file('admin_logo');
             $date = date('Y-m-d');
-            $filename = strtolower('backend-logo-' . $date . '.' . $file->getClientOriginalExtension());
-            $path = $file->storeAs('public/backend', $filename);
-            
+            $filename = strtolower('backend-logo-'.$date.'.'.$file->getClientOriginalExtension());
+            $path = $file->storeAs('backend', $filename, 'public');
+
             if ($path !== false) {
-                Setting::set('admin_logo', Storage::url($path));
+                Setting::set('admin_logo', '/storage/'.$path);
             }
         }
 
         // Handle Admin Brand Icon
         if ($request->hasFile('admin_icon')) {
             $oldIcon = Setting::get('admin_icon');
-            if ($oldIcon && str_starts_with($oldIcon, '/storage')) {
-                Storage::delete(str_replace('/storage', 'public', $oldIcon));
+            if ($oldIcon && str_starts_with($oldIcon, '/storage/')) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $oldIcon));
             }
 
             $file = $request->file('admin_icon');
             $date = date('Y-m-d');
-            $filename = strtolower('backend-icon-' . $date . '.' . $file->getClientOriginalExtension());
-            $path = $file->storeAs('public/backend', $filename);
-            
+            $filename = strtolower('backend-icon-'.$date.'.'.$file->getClientOriginalExtension());
+            $path = $file->storeAs('backend', $filename, 'public');
+
             if ($path !== false) {
-                Setting::set('admin_icon', Storage::url($path));
+                Setting::set('admin_icon', '/storage/'.$path);
             }
         }
 
@@ -130,7 +130,9 @@ class ProfileController extends Controller
 
                 'cv_file_path' => Setting::get('cv_file_path'),
                 'social_links' => json_decode(Setting::get('social_links', '[]'), true) ?: [],
-            ]
+                'webp_conversion_enabled' => filter_var(Setting::get('webp_conversion_enabled', true), FILTER_VALIDATE_BOOLEAN),
+                'keep_original_image' => filter_var(Setting::get('keep_original_image', false), FILTER_VALIDATE_BOOLEAN),
+            ],
         ]);
     }
 
@@ -174,6 +176,10 @@ class ProfileController extends Controller
             'social_links.*.name' => 'required|string|max:255',
             'social_links.*.url' => 'required|string|max:2048',
             'social_links.*.sort_order' => 'required|integer',
+
+            // WebP Image Optimization Settings
+            'webp_conversion_enabled' => 'nullable|boolean',
+            'keep_original_image' => 'nullable|boolean',
         ]);
 
         // Update settings text fields
@@ -190,6 +196,9 @@ class ProfileController extends Controller
             }
         }
 
+        Setting::set('webp_conversion_enabled', $request->boolean('webp_conversion_enabled') ? '1' : '0');
+        Setting::set('keep_original_image', $request->boolean('keep_original_image') ? '1' : '0');
+
         if ($request->has('social_links')) {
             $socialLinks = $validated['social_links'] ?? [];
 
@@ -197,16 +206,16 @@ class ProfileController extends Controller
                 // If a new icon file has been uploaded for this profile
                 if ($request->hasFile("social_links.{$index}.icon_file")) {
                     $file = $request->file("social_links.{$index}.icon_file");
-                    
+
                     // Rename with lowercase slug name and date
                     $slugName = str($link['name'])->slug()->toString();
                     $date = date('Y-m-d');
-                    $filename = strtolower($slugName . '-' . $date . '.' . $file->getClientOriginalExtension());
-                    
+                    $filename = strtolower($slugName.'-'.$date.'.'.$file->getClientOriginalExtension());
+
                     // Save in CMS public storage
-                    $path = $file->storeAs('public/frontend/social-icons', $filename);
+                    $path = $file->storeAs('frontend/social-icons', $filename, 'public');
                     if ($path !== false) {
-                        $link['icon'] = Storage::url($path);
+                        $link['icon'] = '/storage/'.$path;
                     }
                 }
 
@@ -215,57 +224,57 @@ class ProfileController extends Controller
             }
             unset($link);
 
-            Setting::set('social_links', json_encode($socialLinks));
+            Setting::set('social_links', json_encode($socialLinks) ?: '[]');
         }
 
         // Handle CV file upload
         if ($request->hasFile('cv_file_path')) {
             $oldCv = Setting::get('cv_file_path');
-            if ($oldCv && str_starts_with($oldCv, '/storage')) {
-                Storage::delete(str_replace('/storage', 'public', $oldCv));
+            if ($oldCv && str_starts_with($oldCv, '/storage/')) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $oldCv));
             }
 
             $file = $request->file('cv_file_path');
             $date = date('Y-m-d');
-            $filename = strtolower('cv-' . $date . '.' . $file->getClientOriginalExtension());
-            $path = $file->storeAs('public/frontend/cv', $filename);
-            
+            $filename = strtolower('cv-'.$date.'.'.$file->getClientOriginalExtension());
+            $path = $file->storeAs('frontend/cv', $filename, 'public');
+
             if ($path !== false) {
-                Setting::set('cv_file_path', Storage::url($path));
+                Setting::set('cv_file_path', '/storage/'.$path);
             }
         }
 
         // Handle Site Logo file upload
         if ($request->hasFile('site_logo')) {
             $oldLogo = Setting::get('site_logo');
-            if ($oldLogo && str_starts_with($oldLogo, '/storage')) {
-                Storage::delete(str_replace('/storage', 'public', $oldLogo));
+            if ($oldLogo && str_starts_with($oldLogo, '/storage/')) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $oldLogo));
             }
 
             $file = $request->file('site_logo');
             $date = date('Y-m-d');
-            $filename = strtolower('site-logo-' . $date . '.' . $file->getClientOriginalExtension());
-            $path = $file->storeAs('public/frontend/logo', $filename);
-            
+            $filename = strtolower('site-logo-'.$date.'.'.$file->getClientOriginalExtension());
+            $path = $file->storeAs('frontend/logo', $filename, 'public');
+
             if ($path !== false) {
-                Setting::set('site_logo', Storage::url($path));
+                Setting::set('site_logo', '/storage/'.$path);
             }
         }
 
         // Handle Site Favicon file upload
         if ($request->hasFile('site_favicon')) {
             $oldFavicon = Setting::get('site_favicon');
-            if ($oldFavicon && str_starts_with($oldFavicon, '/storage')) {
-                Storage::delete(str_replace('/storage', 'public', $oldFavicon));
+            if ($oldFavicon && str_starts_with($oldFavicon, '/storage/')) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $oldFavicon));
             }
 
             $file = $request->file('site_favicon');
             $date = date('Y-m-d');
-            $filename = strtolower('site-favicon-' . $date . '.' . $file->getClientOriginalExtension());
-            $path = $file->storeAs('public/frontend/favicon', $filename);
-            
+            $filename = strtolower('site-favicon-'.$date.'.'.$file->getClientOriginalExtension());
+            $path = $file->storeAs('frontend/favicon', $filename, 'public');
+
             if ($path !== false) {
-                Setting::set('site_favicon', Storage::url($path));
+                Setting::set('site_favicon', '/storage/'.$path);
             }
         }
 

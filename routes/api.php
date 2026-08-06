@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\CommentController;
-use App\Http\Controllers\Api\PostController;
-use App\Http\Controllers\Api\SettingController;
-use App\Http\Controllers\Api\SubscriberController;
 use App\Http\Controllers\Api\EducationController;
 use App\Http\Controllers\Api\ExperienceController;
+use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\SubscriberController;
+use App\Http\Controllers\Api\ContactController;
 use Illuminate\Support\Facades\Route;
 
 // Public Blog API routes
@@ -20,6 +21,11 @@ Route::prefix('v1')->group(function () {
         Route::get('posts', [PostController::class, 'index']);
         Route::get('posts/slider', [PostController::class, 'slider']);
         Route::get('posts/{slug}', [PostController::class, 'show']);
+        Route::get('posts/preview/{slug}', [PostController::class, 'preview'])
+            ->name('api.posts.preview')
+            ->middleware('signed');
+        Route::get('sitemap', [PostController::class, 'sitemap']);
+        Route::get('posts/rss', [PostController::class, 'rss']);
     });
 
     // Write operations (throttled at 5 req/min to prevent spam)
@@ -27,5 +33,6 @@ Route::prefix('v1')->group(function () {
         Route::post('posts/{id}/like', [PostController::class, 'like']);
         Route::post('posts/{postId}/comments', [CommentController::class, 'store']);
         Route::post('subscribers', [SubscriberController::class, 'store']);
+        Route::post('contact', [ContactController::class, 'store']);
     });
 });

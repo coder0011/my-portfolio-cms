@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Post extends Model
 {
@@ -26,6 +27,8 @@ class Post extends Model
         'secondary_keywords',
         'no_index',
         'user_id',
+        'faqs',
+        'categories',
     ];
 
     protected $casts = [
@@ -34,6 +37,8 @@ class Post extends Model
         'tags' => 'array',
         'secondary_keywords' => 'array',
         'no_index' => 'boolean',
+        'faqs' => 'array',
+        'categories' => 'array',
     ];
 
     /**
@@ -89,18 +94,36 @@ class Post extends Model
     protected static function booted()
     {
         static::saved(function ($post) {
-            cache()->forget('blog_posts_all');
-            cache()->forget('blog_posts_slider');
-            if ($post->slug) {
-                cache()->forget("blog_post_{$post->slug}");
-            }
+            static::clearPostCache($post);
         });
         static::deleted(function ($post) {
-            cache()->forget('blog_posts_all');
-            cache()->forget('blog_posts_slider');
-            if ($post->slug) {
-                cache()->forget("blog_post_{$post->slug}");
-            }
+            static::clearPostCache($post);
         });
+    }
+
+    /**
+     * Clear selective blog cache keys on post modifications to prevent cache stampedes.
+     */
+    protected static function clearPostCache(Post $post): void
+    {
+        // 1. Forget single post detail page cache
+        Cache::forget("blog_post_{$post->slug}");
+
+        // 2. Forget blog slider cache
+        Cache::forget('blog_posts_slider');
+
+        // 3. Forget sitemap cache if present
+        Cache::forget('sitemap_cache');
+
+        // 4. Forget all registered dynamic query listing caches
+        $keys = Cache::get('post_cache_keys', []);
+        if (is_array($keys)) {
+            foreach ($keys as $key) {
+                if (is_string($key)) {
+                    Cache::forget($key);
+                }
+            }
+        }
+        Cache::forget('post_cache_keys');
     }
 }

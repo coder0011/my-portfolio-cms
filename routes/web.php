@@ -2,18 +2,20 @@
 
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\CommentController;
-use App\Http\Controllers\Admin\PostController;
-use App\Http\Controllers\Admin\SubscriberController;
+use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\EducationController;
 use App\Http\Controllers\Admin\ExperienceController;
+use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\SubscriberController;
+use App\Http\Controllers\Admin\UserRoleController;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Subscriber;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-//Route::inertia('/', 'welcome')->name('home');
+// Route::inertia('/', 'welcome')->name('home');
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -53,6 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('posts/create', [PostController::class, 'create'])->name('admin.posts.create');
         Route::post('posts', [PostController::class, 'store'])->name('admin.posts.store');
         Route::get('posts/{post}/edit', [PostController::class, 'edit'])->name('admin.posts.edit');
+        Route::get('posts/{post}/preview-url', [PostController::class, 'generatePreviewUrl'])->name('admin.posts.preview-url');
         Route::put('posts/{post}', [PostController::class, 'update'])->name('admin.posts.update');
         Route::delete('posts/{post}', [PostController::class, 'destroy'])->name('admin.posts.destroy');
 
@@ -66,6 +69,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('subscribers', [SubscriberController::class, 'index'])->name('admin.subscribers.index');
         Route::delete('subscribers/{subscriber}', [SubscriberController::class, 'destroy'])->name('admin.subscribers.destroy');
+
+        Route::get('contacts', [ContactController::class, 'index'])->name('admin.contacts.index');
+        Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('admin.contacts.destroy');
 
         // Educations Timeline CRUD
         Route::get('educations', [EducationController::class, 'index'])->name('admin.educations.index');
@@ -84,6 +90,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('projects', [ProjectController::class, 'store'])->name('admin.projects.store');
         Route::put('projects/{project}', [ProjectController::class, 'update'])->name('admin.projects.update');
         Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('admin.projects.destroy');
+
+        // User & Role Management CRUD
+        Route::get('users-roles', [UserRoleController::class, 'index'])->name('admin.users-roles.index');
+        Route::post('users', [UserRoleController::class, 'storeUser'])->name('admin.users.store');
+        Route::put('users/{user}', [UserRoleController::class, 'updateUser'])->name('admin.users.update');
+        Route::delete('users/{user}', [UserRoleController::class, 'destroyUser'])->name('admin.users.destroy');
+        Route::post('roles', [UserRoleController::class, 'storeRole'])->name('admin.roles.store');
+        Route::put('roles/{role}', [UserRoleController::class, 'updateRole'])->name('admin.roles.update');
+        Route::delete('roles/{role}', [UserRoleController::class, 'destroyRole'])->name('admin.roles.destroy');
     });
 });
 

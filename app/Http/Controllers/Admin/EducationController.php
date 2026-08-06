@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\ActivityLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Education;
 use Illuminate\Http\RedirectResponse;
@@ -43,7 +44,9 @@ class EducationController extends Controller
             'sort_order' => 'nullable|integer',
         ]);
 
-        Education::create($validated);
+        $education = Education::create($validated);
+
+        ActivityLogger::log('EDUCATION_CREATED', "Added academic timeline entry '{$education->degree}'");
 
         return redirect()->route('admin.educations.index')->with('success', 'Education entry created successfully!');
     }
@@ -65,6 +68,8 @@ class EducationController extends Controller
 
         $education->update($validated);
 
+        ActivityLogger::log('EDUCATION_UPDATED', "Updated academic timeline entry '{$education->degree}'");
+
         return redirect()->route('admin.educations.index')->with('success', 'Education entry updated successfully!');
     }
 
@@ -75,7 +80,10 @@ class EducationController extends Controller
     {
         Gate::authorize('educations.manage');
 
+        $degree = $education->degree;
         $education->delete();
+
+        ActivityLogger::log('EDUCATION_DELETED', "Deleted academic timeline entry '{$degree}'");
 
         return redirect()->route('admin.educations.index')->with('success', 'Education entry deleted successfully!');
     }

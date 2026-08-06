@@ -1,5 +1,17 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, FileText, MessageSquare, History, Users, GraduationCap, Briefcase } from 'lucide-react';
+import {
+    BookOpen,
+    FolderGit2,
+    LayoutGrid,
+    FileText,
+    MessageSquare,
+    History,
+    Users,
+    GraduationCap,
+    Briefcase,
+    Shield,
+    Mail,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -68,6 +80,12 @@ export function AppSidebar() {
             permission: 'subscribers.manage',
         },
         {
+            title: 'Contacts',
+            href: admin.contacts.index().url,
+            icon: Mail,
+            permission: 'contacts.manage',
+        },
+        {
             title: 'Educations',
             href: admin.educations.index().url,
             icon: GraduationCap,
@@ -85,7 +103,13 @@ export function AppSidebar() {
             icon: FolderGit2,
             permission: 'projects.manage',
         },
-    ].filter(item => permissions.includes(item.permission));
+        {
+            title: 'Users & Roles',
+            href: admin.usersRoles.index().url,
+            icon: Shield,
+            permission: 'users.manage',
+        },
+    ].filter((item) => permissions.includes(item.permission));
 
     return (
         <Sidebar collapsible="icon" variant="inset">

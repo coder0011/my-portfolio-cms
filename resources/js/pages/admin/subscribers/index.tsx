@@ -24,7 +24,11 @@ interface PaginatedSubscribers {
     total: number;
 }
 
-export default function Index({ subscribers }: { subscribers: PaginatedSubscribers }) {
+export default function Index({
+    subscribers,
+}: {
+    subscribers: PaginatedSubscribers;
+}) {
     const { delete: destroy } = useForm();
 
     const handleDelete = (id: number) => {
@@ -32,7 +36,7 @@ export default function Index({ subscribers }: { subscribers: PaginatedSubscribe
             destroy(admin.subscribers.destroy({ subscriber: id }).url, {
                 onSuccess: () => {
                     // Done
-                }
+                },
             });
         }
     };
@@ -44,16 +48,19 @@ export default function Index({ subscribers }: { subscribers: PaginatedSubscribe
             <div className="flex flex-col gap-6 p-6">
                 {/* Header */}
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Newsletter Subscribers</h1>
-                    <p className="text-muted-foreground text-sm">
-                        Manage your blog mailing list and newsletter subscribers.
+                    <h1 className="text-2xl font-bold tracking-tight">
+                        Newsletter Subscribers
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        Manage your blog mailing list and newsletter
+                        subscribers.
                     </p>
                 </div>
 
                 {/* Subscribers Table */}
-                <div className="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm overflow-hidden">
+                <div className="overflow-hidden rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse text-sm">
+                        <table className="w-full border-collapse text-left text-sm">
                             <thead>
                                 <tr className="border-b border-sidebar-border bg-muted/40 font-medium text-muted-foreground">
                                     <th className="p-4">Email Address</th>
@@ -65,7 +72,10 @@ export default function Index({ subscribers }: { subscribers: PaginatedSubscribe
                             <tbody>
                                 {subscribers.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="p-8 text-center text-muted-foreground">
+                                        <td
+                                            colSpan={4}
+                                            className="p-8 text-center text-muted-foreground"
+                                        >
                                             <div className="flex flex-col items-center gap-2">
                                                 <Mail className="h-6 w-6 text-muted-foreground/60" />
                                                 No subscribers found yet.
@@ -74,31 +84,38 @@ export default function Index({ subscribers }: { subscribers: PaginatedSubscribe
                                     </tr>
                                 ) : (
                                     subscribers.data.map((sub) => (
-                                        <tr key={sub.id} className="border-b border-sidebar-border/50 hover:bg-muted/10 transition-colors">
+                                        <tr
+                                            key={sub.id}
+                                            className="border-b border-sidebar-border/50 transition-colors hover:bg-muted/10"
+                                        >
                                             <td className="p-4 font-medium text-foreground">
                                                 {sub.email}
                                             </td>
                                             <td className="p-4">
                                                 {sub.verified_at ? (
-                                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-500/10 text-green-600 dark:text-green-400">
+                                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-semibold text-green-600 dark:text-green-400">
                                                         <UserCheck className="h-3 w-3" />
                                                         Verified
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                                    <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
                                                         Unverified
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="p-4 text-muted-foreground whitespace-nowrap">
-                                                {new Date(sub.created_at).toLocaleString()}
+                                            <td className="p-4 whitespace-nowrap text-muted-foreground">
+                                                {new Date(
+                                                    sub.created_at,
+                                                ).toLocaleString()}
                                             </td>
                                             <td className="p-4 text-right whitespace-nowrap">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => handleDelete(sub.id)}
-                                                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                                    onClick={() =>
+                                                        handleDelete(sub.id)
+                                                    }
+                                                    className="text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                                                 >
                                                     <Trash className="h-4 w-4" />
                                                 </Button>
@@ -112,24 +129,30 @@ export default function Index({ subscribers }: { subscribers: PaginatedSubscribe
 
                     {/* Pagination */}
                     {subscribers.last_page > 1 && (
-                        <div className="flex items-center justify-between border-t border-sidebar-border p-4 bg-muted/20">
+                        <div className="flex items-center justify-between border-t border-sidebar-border bg-muted/20 p-4">
                             <div className="text-xs text-muted-foreground">
-                                Showing page {subscribers.current_page} of {subscribers.last_page} ({subscribers.total} total subscribers)
+                                Showing page {subscribers.current_page} of{' '}
+                                {subscribers.last_page} ({subscribers.total}{' '}
+                                total subscribers)
                             </div>
                             <div className="flex items-center gap-1">
                                 {subscribers.links.map((link, i) => (
                                     <Button
                                         key={i}
-                                        variant={link.active ? 'default' : 'outline'}
+                                        variant={
+                                            link.active ? 'default' : 'outline'
+                                        }
                                         size="sm"
                                         onClick={() => {
                                             if (link.url) {
-window.location.href = link.url;
-}
+                                                window.location.href = link.url;
+                                            }
                                         }}
                                         disabled={!link.url}
                                         className="h-8 min-w-[32px] px-2 text-xs"
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                        dangerouslySetInnerHTML={{
+                                            __html: link.label,
+                                        }}
                                     />
                                 ))}
                             </div>

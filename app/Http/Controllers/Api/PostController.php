@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 
 class PostController extends Controller
 {
@@ -20,17 +23,26 @@ class PostController extends Controller
         $limit = $request->get('limit', 10);
         $cacheKey = "blog_posts_{$category}_{$tag}_page_{$page}_limit_{$limit}";
 
-        $posts = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function () use ($request) {
-            $query = Post::with(['user', 'categories'])
+        // Register the cache key dynamically for targeted cache clearing
+        $keys = Cache::get('post_cache_keys', []);
+        if (is_array($keys) && ! in_array($cacheKey, $keys, true)) {
+            $keys[] = $cacheKey;
+            Cache::put('post_cache_keys', $keys, 3600 * 24);
+        }
+
+        $posts = Cache::remember($cacheKey, 3600, function () use ($request) {
+            $query = Post::with(['user'])
                 ->whereNotNull('published_at')
                 ->where('published_at', '<=', now())
                 ->where('no_index', false)
                 ->orderBy('published_at', 'desc');
 
-            // Optional filter by category
+            // Optimized relational category filter using pivot table joins
             if ($request->has('category')) {
-                $query->whereHas('categories', function ($q) use ($request) {
-                    $q->where('slug', $request->category);
+                $categorySlug = $request->category;
+                $query->whereHas('categories', function ($q) use ($categorySlug) {
+                    $q->where('slug', $categorySlug)
+                        ->orWhere('title', 'like', '%'.str_replace('-', ' ', $categorySlug).'%');
                 });
             }
 
@@ -52,7 +64,7 @@ class PostController extends Controller
     {
         $limit = min(15, max(1, (int) $request->get('limit', 6)));
 
-        $posts = \Illuminate\Support\Facades\Cache::rememberForever('blog_posts_slider', function () use ($limit) {
+        $posts = Cache::rememberForever('blog_posts_slider', function () use ($limit) {
             return Post::select([
                 'id',
                 'title',
@@ -85,10 +97,9 @@ class PostController extends Controller
      */
     public function show(string $slug): JsonResponse
     {
-        $post = \Illuminate\Support\Facades\Cache::rememberForever("blog_post_{$slug}", function () use ($slug) {
+        $post = Cache::rememberForever("blog_post_{$slug}", function () use ($slug) {
             return Post::with([
                 'user:id,name,avatar,bio',
-                'categories:id,title,slug',
                 'comments' => function ($query) {
                     $query->where('approved', true)->orderBy('created_at', 'desc');
                 },
@@ -99,6 +110,24 @@ class PostController extends Controller
                 ->firstOrFail()
                 ->toArray();
         });
+
+        return response()->json($post);
+    }
+
+    /**
+     * Display the specified unpublished post preview.
+     */
+    public function preview(string $slug): JsonResponse
+    {
+        $post = Post::with([
+            'user:id,name,avatar,bio',
+            'comments' => function ($query) {
+                $query->where('approved', true)->orderBy('created_at', 'desc');
+            },
+        ])
+            ->where('slug', $slug)
+            ->firstOrFail()
+            ->toArray();
 
         return response()->json($post);
     }
@@ -118,5 +147,42 @@ class PostController extends Controller
             'success' => true,
             'likes_count' => $post->likes_count,
         ]);
+    }
+
+    /**
+     * Display a list of published posts and projects for sitemap generation.
+     */
+    public function sitemap(): JsonResponse
+    {
+        $posts = Post::whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->where('no_index', false)
+            ->orderBy('published_at', 'desc')
+            ->get(['slug', 'updated_at', 'published_at']);
+
+        $projects = Project::orderBy('sort_order', 'asc')
+            ->get(['project_folder', 'updated_at', 'created_at']);
+
+        return response()->json([
+            'success' => true,
+            'posts' => $posts,
+            'projects' => $projects,
+        ]);
+    }
+
+    /**
+     * Display the RSS feed.
+     */
+    public function rss(): Response
+    {
+        $posts = Post::with(['user'])
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->orderBy('published_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        return response()->view('rss', compact('posts'))
+            ->header('Content-Type', 'text/xml');
     }
 }

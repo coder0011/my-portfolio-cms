@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\ActivityLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Subscriber;
 use Illuminate\Http\RedirectResponse;
@@ -33,7 +34,10 @@ class SubscriberController extends Controller
     {
         Gate::authorize('subscribers.manage');
 
+        $email = $subscriber->email;
         $subscriber->delete();
+
+        ActivityLogger::log('SUBSCRIBER_DELETED', "Removed newsletter subscriber '{$email}'");
 
         return redirect()->back()->with('success', 'Subscriber removed successfully!');
     }

@@ -8,20 +8,28 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function resolveUrl(path: string): string {
-    if (!path) return path;
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    
+    if (!path) {
+        return path;
+    }
+
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
+
     if (typeof window !== 'undefined') {
         const pathname = window.location.pathname;
-        const match = pathname.match(/^(\/[^\/]+\/public)/);
+        const match = pathname.match(/^(\/[^/]+\/public)/);
+
         if (match && !path.startsWith(match[1])) {
             return `${match[1]}${path.startsWith('/') ? '' : '/'}${path}`;
         }
     }
+
     return path;
 }
 
 export function toUrl(url: NonNullable<InertiaLinkProps['href']>): string {
     const raw = typeof url === 'string' ? url : url.url;
+
     return resolveUrl(raw);
 }

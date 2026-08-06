@@ -8,9 +8,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { store } from '@/routes/login';
-import { request } from '@/routes/password';
 import { resolveUrl } from '@/lib/utils';
+import { store } from '@/routes/login';
 
 type Props = {
     status?: string;

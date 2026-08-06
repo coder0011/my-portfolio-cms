@@ -54,6 +54,10 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
+    'portfolio_public_path' => env('PORTFOLIO_PUBLIC_PATH', base_path('../my-portfolio/public')),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
@@ -65,7 +69,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
 
     /*
     |--------------------------------------------------------------------------

@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ProjectController extends Controller
 {
@@ -17,7 +18,7 @@ class ProjectController extends Controller
         $isFeaturedQuery = $request->has('featured') && (filter_var($request->query('featured'), FILTER_VALIDATE_BOOLEAN) || $request->query('featured') == 1);
         $cacheKey = $isFeaturedQuery ? 'portfolio_projects_featured' : 'portfolio_projects_all';
 
-        $projects = \Illuminate\Support\Facades\Cache::rememberForever($cacheKey, function () use ($isFeaturedQuery) {
+        $projects = Cache::rememberForever($cacheKey, function () use ($isFeaturedQuery) {
             $query = Project::orderBy('sort_order', 'asc')
                 ->orderBy('id', 'asc');
 
