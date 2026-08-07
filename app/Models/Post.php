@@ -138,7 +138,7 @@ class Post extends Model
         static::regenerateSliderCache();
 
         // 2. Regenerate single post detail page cache if the post still exists and is published
-        if ($post->exists && $post->published_at && $post->published_at <= now() && !$post->no_index) {
+        if ($post->exists && $post->published_at && $post->published_at <= now() && ! $post->no_index) {
             Cache::rememberForever("blog_post_{$post->slug}", function () use ($post) {
                 return Post::with([
                     'user:id,name,avatar,bio',

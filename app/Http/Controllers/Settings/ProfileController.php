@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Helpers\ActivityLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
+use App\Models\Education;
+use App\Models\Post;
+use App\Models\Project;
 use App\Models\Setting;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -289,20 +295,20 @@ class ProfileController extends Controller
     public function purgeCache(Request $request): RedirectResponse
     {
         // 1. Flush application data cache
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::flush();
 
         // 2. Regenerate essential portfolio caches
-        \App\Models\Education::regenerateCache();
-        \App\Models\Project::regenerateCache();
-        \App\Models\Setting::regenerateCache();
-        \App\Models\Post::regenerateSliderCache();
+        Education::regenerateCache();
+        Project::regenerateCache();
+        Setting::regenerateCache();
+        Post::regenerateSliderCache();
 
         // 3. Log the cache purge activity
-        \App\Helpers\ActivityLogger::log('DATA_CACHE_PURGED', 'Purged and regenerated all application database caches');
+        ActivityLogger::log('DATA_CACHE_PURGED', 'Purged and regenerated all application database caches');
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => __('Application data cache has been purged and regenerated successfully.')
+            'message' => __('Application data cache has been purged and regenerated successfully.'),
         ]);
 
         return redirect()->back();
@@ -315,20 +321,20 @@ class ProfileController extends Controller
     {
         // 1. Clear framework bootstrap caches
         try {
-            \Illuminate\Support\Facades\Artisan::call('config:clear');
-            \Illuminate\Support\Facades\Artisan::call('route:clear');
-            \Illuminate\Support\Facades\Artisan::call('view:clear');
-            \Illuminate\Support\Facades\Artisan::call('event:clear');
+            Artisan::call('config:clear');
+            Artisan::call('route:clear');
+            Artisan::call('view:clear');
+            Artisan::call('event:clear');
         } catch (\Throwable $e) {
             // Silently capture if any permission issues arise on shared hosting
         }
 
         // 2. Log the activity
-        \App\Helpers\ActivityLogger::log('FRAMEWORK_CACHE_CLEARED', 'Cleared Laravel framework bootstrap caches (config, routes, views, events)');
+        ActivityLogger::log('FRAMEWORK_CACHE_CLEARED', 'Cleared Laravel framework bootstrap caches (config, routes, views, events)');
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => __('Laravel framework bootstrap caches cleared successfully.')
+            'message' => __('Laravel framework bootstrap caches cleared successfully.'),
         ]);
 
         return redirect()->back();

@@ -166,7 +166,7 @@ export default function Index({ users, roles, permissions, auth }: IndexProps) {
         e.preventDefault();
 
         if (editRoleId) {
-            roleForm.put(admin.roles.update({ role: editRoleId }).url, {
+            roleForm.put(admin.roles.update({ role: String(editRoleId) }).url, {
                 onSuccess: () => {
                     setIsRoleOpen(false);
                     roleForm.reset();
@@ -190,7 +190,7 @@ export default function Index({ users, roles, permissions, auth }: IndexProps) {
         }
 
         if (confirm(`Are you sure you want to delete role "${role.name}"?`)) {
-            roleForm.delete(admin.roles.destroy({ role: role.id }).url);
+            roleForm.delete(admin.roles.destroy({ role: String(role.id) }).url);
         }
     };
 

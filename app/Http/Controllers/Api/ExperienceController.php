@@ -22,7 +22,7 @@ class ExperienceController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $experiences
+            'data' => $experiences,
         ]);
     }
 }

@@ -115,4 +115,10 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    'contacts' => [
+        'to' => env('MAIL_TO_ADDRESS', 'saurabh.ss668@gmail.com'),
+        'cc' => env('MAIL_CC_ADDRESS', 'saurabh.ss957@gmail.com'),
+        'bcc' => env('MAIL_BCC_ADDRESS', ''),
+    ],
+
 ];

@@ -31,13 +31,14 @@ class ProjectController extends Controller
                 if ($project->image_path && (str_starts_with($project->image_path, '/storage') || str_starts_with($project->image_path, 'storage/'))) {
                     $project->image_path = asset($project->image_path);
                 }
+
                 return $project;
             })->toArray();
         });
 
         return response()->json([
             'success' => true,
-            'data' => $projects
+            'data' => $projects,
         ]);
     }
 }

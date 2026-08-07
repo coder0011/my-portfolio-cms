@@ -40,6 +40,8 @@ class Setting extends Model
 
     /**
      * Get formatted settings for API responses, cached forever.
+     *
+     * @return array<string, mixed>
      */
     public static function getPublicSettings(): array
     {
@@ -49,7 +51,7 @@ class Setting extends Model
                 'site_meta_title', 'site_meta_description',
                 'owner_name', 'owner_title', 'owner_bio_short', 'owner_bio_long',
                 'contact_email', 'contact_phone', 'contact_location', 'contact_address',
-                'google_map_link', 'total_experience'
+                'google_map_link', 'total_experience',
             ];
 
             $data = [];

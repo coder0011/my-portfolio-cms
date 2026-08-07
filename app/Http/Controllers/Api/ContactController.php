@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Contact;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use App\Models\Contact;
+use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
 {
@@ -26,8 +26,8 @@ class ContactController extends Controller
         ]);
 
         // 1. Verify Google reCAPTCHA
-        $recaptchaSecret = env('RECAPTCHA_SECRET', '6LcNg6orAAAAADYfj_wWTsLxUslRxmLYpzOtE_0g');
-        
+        $recaptchaSecret = (string) config('services.recaptcha.secret', '6LcNg6orAAAAADYfj_wWTsLxUslRxmLYpzOtE_0g');
+
         $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret' => $recaptchaSecret,
             'response' => $validated['g-recaptcha-response'],
@@ -38,13 +38,13 @@ class ContactController extends Controller
         $captchaSuccess = $verification['success'] ?? false;
 
         // In production, enforce captcha validation score/success
-        if (!$captchaSuccess && app()->environment('production')) {
+        if (! $captchaSuccess && app()->environment('production')) {
             return response()->json([
                 'success' => false,
                 'message' => 'ReCAPTCHA verification failed. Please try again.',
                 'errors' => [
-                    'captcha' => ['ReCAPTCHA verification failed.']
-                ]
+                    'captcha' => ['ReCAPTCHA verification failed.'],
+                ],
             ], 422);
         }
 
@@ -67,13 +67,13 @@ class ContactController extends Controller
                     'contact_message' => $validated['message'],
                 ],
                 function ($message) use ($validated) {
-                    $toAddresses = array_filter(array_map('trim', explode(',', env('MAIL_TO_ADDRESS', 'saurabh.ss668@gmail.com'))));
-                    $ccAddresses = array_filter(array_map('trim', explode(',', env('MAIL_CC_ADDRESS', 'saurabh.ss957@gmail.com'))));
-                    $bccAddresses = array_filter(array_map('trim', explode(',', env('MAIL_BCC_ADDRESS', ''))));
-                    
-                    $message->subject("Someone tried to contact: " . $validated['subject'])
+                    $toAddresses = array_filter(array_map('trim', explode(',', (string) config('mail.contacts.to', 'saurabh.ss668@gmail.com'))));
+                    $ccAddresses = array_filter(array_map('trim', explode(',', (string) config('mail.contacts.cc', 'saurabh.ss957@gmail.com'))));
+                    $bccAddresses = array_filter(array_map('trim', explode(',', (string) config('mail.contacts.bcc', ''))));
+
+                    $message->subject('Someone tried to contact: '.$validated['subject'])
                         ->replyTo($validated['email'], $validated['name']);
-                        
+
                     foreach ($toAddresses as $addr) {
                         if (filter_var($addr, FILTER_VALIDATE_EMAIL)) {
                             $message->to($addr);
@@ -94,7 +94,7 @@ class ContactController extends Controller
                 }
             );
         } catch (\Exception $e) {
-            Log::error("Failed to send contact email in CMS: " . $e->getMessage());
+            Log::error('Failed to send contact email in CMS: '.$e->getMessage());
             // In local development, don't fail the response if the mail client config is missing (e.g. if mailer=log writes to file)
             if (app()->environment('production')) {
                 return response()->json([

@@ -58,7 +58,7 @@ class DispatchWebhookJob implements ShouldQueue
                 Log::info('Frontend rebuild webhook successfully dispatched.');
             }
         } catch (\Exception $e) {
-            Log::error('Error dispatching frontend rebuild webhook: ' . $e->getMessage());
+            Log::error('Error dispatching frontend rebuild webhook: '.$e->getMessage());
         }
     }
 }

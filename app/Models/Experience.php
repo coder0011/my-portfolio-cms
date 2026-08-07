@@ -16,7 +16,7 @@ class Experience extends Model
 
     protected static function booted()
     {
-        static::saved(fn() => cache()->forget('portfolio_experiences'));
-        static::deleted(fn() => cache()->forget('portfolio_experiences'));
+        static::saved(fn () => cache()->forget('portfolio_experiences'));
+        static::deleted(fn () => cache()->forget('portfolio_experiences'));
     }
 }

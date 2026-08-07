@@ -22,7 +22,7 @@ class EducationController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $educations
+            'data' => $educations,
         ]);
     }
 }

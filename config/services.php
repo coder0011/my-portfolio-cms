@@ -39,4 +39,8 @@ return [
         'webhook_url' => env('FRONTEND_REBUILD_WEBHOOK_URL'),
     ],
 
+    'recaptcha' => [
+        'secret' => env('RECAPTCHA_SECRET', '6LcNg6orAAAAADYfj_wWTsLxUslRxmLYpzOtE_0g'),
+    ],
+
 ];

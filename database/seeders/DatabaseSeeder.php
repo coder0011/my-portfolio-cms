@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Setting;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Models\Project;
+use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        if (!$admin->hasRole('Super Admin')) {
+        if (! $admin->hasRole('Super Admin')) {
             $admin->assignRole('Super Admin');
         }
 
@@ -54,76 +54,75 @@ class DatabaseSeeder extends Seeder
             'site_logo' => '/storage/frontend/images/logo.png',
             'site_favicon' => '/storage/frontend/images/favicon.png',
 
-
             // Social links
             'social_links' => json_encode([
                 [
                     'icon' => 'linkedin',
                     'name' => 'LinkedIn',
                     'url' => 'https://www.linkedin.com/in/coder0011',
-                    'sort_order' => 1
+                    'sort_order' => 1,
                 ],
                 [
                     'icon' => 'github',
                     'name' => 'GitHub',
                     'url' => 'https://github.com/coder0011',
-                    'sort_order' => 2
+                    'sort_order' => 2,
                 ],
                 [
                     'icon' => 'facebook',
                     'name' => 'Facebook',
                     'url' => 'https://www.facebook.com/coder0011',
-                    'sort_order' => 3
+                    'sort_order' => 3,
                 ],
                 [
                     'icon' => 'instagram',
                     'name' => 'Instagram',
                     'url' => 'https://www.instagram.com/_coder11',
-                    'sort_order' => 4
+                    'sort_order' => 4,
                 ],
                 [
                     'icon' => 'instagram_pro',
                     'name' => 'Instagram Pro',
                     'url' => 'https://www.instagram.com/withsaurabhcodes',
-                    'sort_order' => 5
+                    'sort_order' => 5,
                 ],
                 [
                     'icon' => 'youtube',
                     'name' => 'YouTube',
                     'url' => 'https://www.youtube.com/@withsaurabhcodes',
-                    'sort_order' => 6
+                    'sort_order' => 6,
                 ],
                 [
                     'icon' => 'whatsapp',
                     'name' => 'WhatsApp',
                     'url' => 'https://tinyurl.com/6jrae2er',
-                    'sort_order' => 7
+                    'sort_order' => 7,
                 ],
                 [
                     'icon' => 'email',
                     'name' => 'Email',
                     'url' => 'saurabh.ss957@gmail.com',
-                    'sort_order' => 8
+                    'sort_order' => 8,
                 ],
                 [
                     'icon' => 'indeed',
                     'name' => 'Indeed',
                     'url' => 'https://profile.indeed.com/p/saurabhs-gf266zr',
-                    'sort_order' => 9
+                    'sort_order' => 9,
                 ],
                 [
                     'icon' => 'medium',
                     'name' => 'Medium',
                     'url' => 'https://medium.com/@coder11',
-                    'sort_order' => 10
+                    'sort_order' => 10,
                 ],
                 [
                     'icon' => 'dev_to',
                     'name' => 'Dev.to',
                     'url' => 'https://dev.to/coder11',
-                    'sort_order' => 11
+                    'sort_order' => 11,
                 ],
-            ])
+            ]),
         ];
 
         foreach ($settings as $key => $value) {
@@ -178,7 +177,7 @@ class DatabaseSeeder extends Seeder
                         ['title' => 'JaipurJoints', 'url' => 'https://clinic.jaipurjoints.com'],
                         ['title' => 'BreathClinic', 'url' => 'https://clinic.breathclinic.in'],
                         ['title' => 'DrTarachand', 'url' => 'https://clinic.drtarachand.com'],
-                        ['title' => 'JaipurNeuro', 'url' => 'https://clinic.jaipurneuro.com']
+                        ['title' => 'JaipurNeuro', 'url' => 'https://clinic.jaipurneuro.com'],
                     ],
                     'description' => 'Built a multi-tenant healthcare SaaS utilizing Next.js 14 and Laravel 12. Implemented real-time event broadcasting via Pusher and centralized state management using Redux Toolkit to sync clinical charts across 8+ clinic networks.',
                     'image_path' => '/storage/frontend/images/portfolio/hospital-management-saas/1.webp',
@@ -339,7 +338,7 @@ class DatabaseSeeder extends Seeder
                         ['title' => 'DrHimanshu', 'url' => 'https://www.drhimanshugupta.com'],
                         ['title' => 'CSIRajasthan', 'url' => 'https://www.csirajasthan.com'],
                         ['title' => 'Digigeeks', 'url' => 'https://www.digigeeks.co'],
-                        ['title' => 'SGKHospitals', 'url' => 'https://www.sgkhospitals.com']
+                        ['title' => 'SGKHospitals', 'url' => 'https://www.sgkhospitals.com'],
                     ],
                     'description' => 'Architected a custom PHP/Laravel Content Management System to streamline content administration across client portals. Replaced hardcoded structures with dynamic, database-driven page components.',
                     'image_path' => '/storage/frontend/images/portfolio/laravel-cms (CSI/1.png',
@@ -478,7 +477,7 @@ class DatabaseSeeder extends Seeder
                     'project_folder' => 'mehndisanskar',
                     'is_featured' => false,
                     'sort_order' => 25,
-                ]
+                ],
             ];
 
             foreach ($projects as $proj) {
