@@ -48,7 +48,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: ${{ secrets.FTP_PORT || 21 }} # Defaults to 21 for FTP, use 22 for SFTP
           local-dir: ./ # Upload all files in the root
-          server-dir: /public_html/cms.saurabhsharma.dev/ # Update to match your Hostinger destination path
+          server-dir: /home/u509909508/domains/saurabhsharma.dev/public_html/cms.saurabhsharma.dev/ # Update to match your Hostinger destination path
           # List of files/folders to exclude from the upload
           exclude: |
             **/.git*
