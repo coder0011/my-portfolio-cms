@@ -13,7 +13,7 @@ jobs:
     steps:
       # 1. Checkout the repository code
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # 2. Setup PHP environment
       - name: Setup PHP
@@ -29,7 +29,7 @@ jobs:
 
       # 4. Setup Node.js environment
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
 
@@ -41,7 +41,7 @@ jobs:
 
       # 6. Deploy to Hostinger via FTP/SFTP
       - name: FTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
