@@ -1,0 +1,76 @@
+name: Build and Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main  # Trigger deployment when pushing to the main branch
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy via FTP
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the repository code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Setup PHP environment
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, mysql, zip
+
+      # 3. Install Composer dependencies (optimizing for production)
+      - name: Install Composer Dependencies
+        run: |
+          composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+      # 4. Setup Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 5. Install NPM dependencies and build production assets (Inertia/Vite)
+      - name: Install & Build Assets
+        run: |
+          npm install
+          npm run build
+
+      # 6. Deploy to Hostinger via FTP/SFTP
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT || 21 }} # Defaults to 21 for FTP, use 22 for SFTP
+          local-dir: ./ # Upload all files in the root
+          server-dir: /public_html/cms.saurabhsharma.dev/ # Update to match your Hostinger destination path
+          # List of files/folders to exclude from the upload
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            **/.env*
+            **/.github/**
+            **/install.ps1
+            **/sync_tools.py
+            **/phpunit.xml
+            **/composer.lock
+            **/package-lock.json
+            **/eslint.config.js
+            **/tsconfig.json
+            **/vite.config.ts
+            **/phpstan.neon
+            **/pint.json
+            **/components.json
+            **/entities.json
+            **/mempalace.yaml
+            **/pnpm-workspace.yaml
+            **/graphify-out/**
+            **/.code-review-graph/**
+            **/.agents/**
