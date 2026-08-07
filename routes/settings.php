@@ -13,6 +13,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/portfolio', [ProfileController::class, 'editPortfolio'])->name('portfolio.edit');
     Route::match(['post', 'patch'], 'settings/portfolio', [ProfileController::class, 'updatePortfolio'])->name('portfolio.update');
+
+    Route::post('settings/cache/purge', [ProfileController::class, 'purgeCache'])->name('settings.cache.purge');
+    Route::post('settings/cache/clear-framework', [ProfileController::class, 'clearFrameworkCache'])->name('settings.cache.clear-framework');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

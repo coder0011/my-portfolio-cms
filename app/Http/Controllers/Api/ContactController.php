@@ -58,14 +58,18 @@ class ContactController extends Controller
 
         // 3. Dispatch Contact Email
         try {
-            Mail::raw(
-                "New Contact Message Received:\n\n" .
-                "Name: {$validated['name']}\n" .
-                "Email: {$validated['email']}\n" .
-                "Subject: {$validated['subject']}\n\n" .
-                "Message:\n{$validated['message']}",
+            Mail::send(
+                'emails.contact',
+                [
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'subject' => $validated['subject'],
+                    'contact_message' => $validated['message'],
+                ],
                 function ($message) use ($validated) {
                     $toAddresses = array_filter(array_map('trim', explode(',', env('MAIL_TO_ADDRESS', 'saurabh.ss668@gmail.com'))));
+                    $ccAddresses = array_filter(array_map('trim', explode(',', env('MAIL_CC_ADDRESS', 'saurabh.ss957@gmail.com'))));
+                    $bccAddresses = array_filter(array_map('trim', explode(',', env('MAIL_BCC_ADDRESS', ''))));
                     
                     $message->subject("Someone tried to contact: " . $validated['subject'])
                         ->replyTo($validated['email'], $validated['name']);
@@ -73,6 +77,18 @@ class ContactController extends Controller
                     foreach ($toAddresses as $addr) {
                         if (filter_var($addr, FILTER_VALIDATE_EMAIL)) {
                             $message->to($addr);
+                        }
+                    }
+
+                    foreach ($ccAddresses as $addr) {
+                        if (filter_var($addr, FILTER_VALIDATE_EMAIL)) {
+                            $message->cc($addr);
+                        }
+                    }
+
+                    foreach ($bccAddresses as $addr) {
+                        if (filter_var($addr, FILTER_VALIDATE_EMAIL)) {
+                            $message->bcc($addr);
                         }
                     }
                 }

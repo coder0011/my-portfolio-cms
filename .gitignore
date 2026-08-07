@@ -15,6 +15,7 @@
 .env
 .env.backup
 .env.production
+.env.local
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
@@ -57,3 +58,6 @@ QODER.md
 # Local utility scripts
 sync_tools.py
 install.ps1
+.htaccess
+composer.lock
+package-lock.json

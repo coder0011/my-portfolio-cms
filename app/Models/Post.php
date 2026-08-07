@@ -95,9 +95,11 @@ class Post extends Model
     {
         static::saved(function ($post) {
             static::clearPostCache($post);
+            static::regeneratePostCache($post);
         });
         static::deleted(function ($post) {
             static::clearPostCache($post);
+            static::regeneratePostCache($post);
         });
     }
 
@@ -125,5 +127,59 @@ class Post extends Model
             }
         }
         Cache::forget('post_cache_keys');
+    }
+
+    /**
+     * Regenerate specific blog cache keys after changes.
+     */
+    protected static function regeneratePostCache(Post $post): void
+    {
+        // 1. Regenerate slider cache
+        static::regenerateSliderCache();
+
+        // 2. Regenerate single post detail page cache if the post still exists and is published
+        if ($post->exists && $post->published_at && $post->published_at <= now() && !$post->no_index) {
+            Cache::rememberForever("blog_post_{$post->slug}", function () use ($post) {
+                return Post::with([
+                    'user:id,name,avatar,bio',
+                    'comments' => function ($query) {
+                        $query->where('approved', true)->orderBy('created_at', 'desc');
+                    },
+                ])
+                    ->where('slug', $post->slug)
+                    ->whereNotNull('published_at')
+                    ->where('published_at', '<=', now())
+                    ->first()?->toArray();
+            });
+        }
+    }
+
+    /**
+     * Regenerate the slider cache for posts.
+     */
+    public static function regenerateSliderCache(): void
+    {
+        Cache::forget('blog_posts_slider');
+        Cache::rememberForever('blog_posts_slider', function () {
+            return static::select([
+                'id',
+                'title',
+                'slug',
+                'excerpt',
+                'main_image',
+                'published_at',
+                'likes_count',
+                'user_id',
+            ])
+                ->withCount('comments')
+                ->with(['user:id,name'])
+                ->whereNotNull('published_at')
+                ->where('published_at', '<=', now())
+                ->where('no_index', false)
+                ->orderBy('published_at', 'desc')
+                ->take(6)
+                ->get()
+                ->toArray();
+        });
     }
 }

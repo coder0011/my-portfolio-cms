@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Project extends Model
 {
@@ -77,12 +78,48 @@ class Project extends Model
     protected static function booted()
     {
         static::saved(function () {
-            cache()->forget('portfolio_projects_all');
-            cache()->forget('portfolio_projects_featured');
+            static::regenerateCache();
         });
         static::deleted(function () {
-            cache()->forget('portfolio_projects_all');
-            cache()->forget('portfolio_projects_featured');
+            static::regenerateCache();
+        });
+    }
+
+    /**
+     * Clear and regenerate the portfolio projects caches.
+     */
+    public static function regenerateCache(): void
+    {
+        Cache::forget('portfolio_projects_all');
+        Cache::forget('portfolio_projects_featured');
+
+        // Regenerate featured projects cache
+        Cache::rememberForever('portfolio_projects_featured', function () {
+            return static::where('is_featured', true)
+                ->orderBy('sort_order', 'asc')
+                ->orderBy('id', 'asc')
+                ->get()
+                ->map(function ($project) {
+                    if ($project->image_path && (str_starts_with($project->image_path, '/storage') || str_starts_with($project->image_path, 'storage/'))) {
+                        $project->image_path = asset($project->image_path);
+                    }
+                    return $project;
+                })
+                ->toArray();
+        });
+
+        // Regenerate all projects cache
+        Cache::rememberForever('portfolio_projects_all', function () {
+            return static::orderBy('sort_order', 'asc')
+                ->orderBy('id', 'asc')
+                ->get()
+                ->map(function ($project) {
+                    if ($project->image_path && (str_starts_with($project->image_path, '/storage') || str_starts_with($project->image_path, 'storage/'))) {
+                        $project->image_path = asset($project->image_path);
+                    }
+                    return $project;
+                })
+                ->toArray();
         });
     }
 }

@@ -103,3 +103,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/settings.php';
+
+if (app()->environment('local')) {
+    Route::get('/preview-contact-email', function () {
+        return view('emails.contact', [
+            'name' => 'John Doe',
+            'email' => 'john.doe@example.com',
+            'subject' => 'Inquiry about Portfolio CMS',
+            'contact_message' => "Hello!\n\nThis is a sample test message to preview the styling of the new HTML email template.\n\nBest regards,\nJohn",
+        ]);
+    });
+}

@@ -284,6 +284,57 @@ class ProfileController extends Controller
     }
 
     /**
+     * Purge application data cache and regenerate core listing caches.
+     */
+    public function purgeCache(Request $request): RedirectResponse
+    {
+        // 1. Flush application data cache
+        \Illuminate\Support\Facades\Cache::flush();
+
+        // 2. Regenerate essential portfolio caches
+        \App\Models\Education::regenerateCache();
+        \App\Models\Project::regenerateCache();
+        \App\Models\Setting::regenerateCache();
+        \App\Models\Post::regenerateSliderCache();
+
+        // 3. Log the cache purge activity
+        \App\Helpers\ActivityLogger::log('DATA_CACHE_PURGED', 'Purged and regenerated all application database caches');
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Application data cache has been purged and regenerated successfully.')
+        ]);
+
+        return redirect()->back();
+    }
+
+    /**
+     * Clear Laravel framework bootstrap caches (config, route, view, event).
+     */
+    public function clearFrameworkCache(Request $request): RedirectResponse
+    {
+        // 1. Clear framework bootstrap caches
+        try {
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
+            \Illuminate\Support\Facades\Artisan::call('route:clear');
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+            \Illuminate\Support\Facades\Artisan::call('event:clear');
+        } catch (\Throwable $e) {
+            // Silently capture if any permission issues arise on shared hosting
+        }
+
+        // 2. Log the activity
+        \App\Helpers\ActivityLogger::log('FRAMEWORK_CACHE_CLEARED', 'Cleared Laravel framework bootstrap caches (config, routes, views, events)');
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Laravel framework bootstrap caches cleared successfully.')
+        ]);
+
+        return redirect()->back();
+    }
+
+    /**
      * Delete the user's profile.
      */
     public function destroy(ProfileDeleteRequest $request): RedirectResponse
