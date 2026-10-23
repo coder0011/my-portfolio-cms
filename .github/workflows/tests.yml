@@ -14,11 +14,11 @@ permissions:
 jobs:
   ci:
     name: Run CI Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -28,7 +28,7 @@ jobs:
           coverage: none
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24.22.1'
           cache: 'npm'
