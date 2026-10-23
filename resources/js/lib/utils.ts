@@ -18,9 +18,15 @@ export function resolveUrl(path: string): string {
 
     if (typeof window !== 'undefined') {
         // Guard against duplicate host in path (e.g. /my-portfolio-cms.local/dashboard -> /dashboard)
-        if (window.location.host && path.startsWith(`/${window.location.host}/`)) {
+        if (
+            window.location.host &&
+            path.startsWith(`/${window.location.host}/`)
+        ) {
             path = path.slice(window.location.host.length + 1);
-        } else if (window.location.host && path === `/${window.location.host}`) {
+        } else if (
+            window.location.host &&
+            path === `/${window.location.host}`
+        ) {
             path = '/';
         }
 
