@@ -28,4 +28,21 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('@tiptap') || id.includes('prosemirror')) {
+                        return 'vendor-tiptap';
+                    }
+                    if (id.includes('@radix-ui')) {
+                        return 'vendor-radix';
+                    }
+                    if (id.includes('marked') || id.includes('lucide-react')) {
+                        return 'vendor-ui-utils';
+                    }
+                },
+            },
+        },
+    },
 });

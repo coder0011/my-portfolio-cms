@@ -27,7 +27,7 @@ class PostController extends Controller
     {
         Gate::authorize('posts.create'); // Editors can view posts list
 
-        $posts = Post::with(['user'])
+        $posts = Post::with(['user', 'categories'])
             ->withCount('comments')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -104,7 +104,7 @@ class PostController extends Controller
             'slug' => $post->slug,
         ]);
 
-        ActivityLogger::log('POST_CREATED', "Created blog post '{$post->title}'");
+        defer(fn () => ActivityLogger::log('POST_CREATED', "Created blog post '{$post->title}'"));
 
         return redirect()->route('admin.posts.index')->with('success', 'Post created successfully!');
     }
@@ -216,7 +216,7 @@ class PostController extends Controller
             'slug' => $post->slug,
         ]);
 
-        ActivityLogger::log('POST_UPDATED', "Updated blog post '{$post->title}'");
+        defer(fn () => ActivityLogger::log('POST_UPDATED', "Updated blog post '{$post->title}'"));
 
         return redirect()->route('admin.posts.index')->with('success', 'Post updated successfully!');
     }
@@ -241,7 +241,7 @@ class PostController extends Controller
             'slug' => $slug,
         ]);
 
-        ActivityLogger::log('POST_DELETED', "Deleted blog post '{$postTitle}'");
+        defer(fn () => ActivityLogger::log('POST_DELETED', "Deleted blog post '{$postTitle}'"));
 
         return redirect()->route('admin.posts.index')->with('success', 'Post deleted successfully!');
     }

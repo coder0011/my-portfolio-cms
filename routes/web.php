@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\EducationController;
 use App\Http\Controllers\Admin\ExperienceController;
+use App\Http\Controllers\Admin\PostAiController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\SubscriberController;
@@ -51,6 +52,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::prefix('dashboard')->group(function () {
+        Route::post('posts/ai/seo', [PostAiController::class, 'generateSeo'])->name('admin.posts.ai.seo');
+        Route::post('posts/ai/editorial', [PostAiController::class, 'assistEditorial'])->name('admin.posts.ai.editorial');
         Route::get('posts', [PostController::class, 'index'])->name('admin.posts.index');
         Route::get('posts/create', [PostController::class, 'create'])->name('admin.posts.create');
         Route::post('posts', [PostController::class, 'store'])->name('admin.posts.store');

@@ -52,7 +52,9 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => ($appUrl = env('APP_URL', 'http://localhost')) && !str_starts_with($appUrl, 'http://') && !str_starts_with($appUrl, 'https://')
+        ? 'http://' . $appUrl
+        : $appUrl,
 
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
