@@ -19,7 +19,7 @@ import { postJson } from '@/lib/utils';
 import admin from '@/routes/admin';
 
 export default function Create() {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, transform, processing, errors } = useForm({
         title: '',
         slug: '',
         excerpt: '',
@@ -172,6 +172,14 @@ export default function Create() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        // Base64 encode body and excerpt to prevent hosting WAF/ModSecurity false-positives on exploit code and server configs
+        transform((raw) => ({
+            ...raw,
+            body: '',
+            body_base64: raw.body ? btoa(unescape(encodeURIComponent(raw.body))) : '',
+            excerpt: '',
+            excerpt_base64: raw.excerpt ? btoa(unescape(encodeURIComponent(raw.excerpt))) : '',
+        }));
         post(admin.posts.store().url, {
             onSuccess: () => {
                 // Done

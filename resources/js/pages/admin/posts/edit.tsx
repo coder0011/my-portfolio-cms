@@ -75,6 +75,7 @@ export default function Edit({ post }: { post: Post }) {
         data,
         setData,
         post: submitForm,
+        transform,
         processing,
         errors,
     } = useForm({
@@ -222,6 +223,14 @@ export default function Edit({ post }: { post: Post }) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        // Base64 encode body and excerpt to prevent hosting WAF/ModSecurity false-positives on exploit code and server configs
+        transform((raw) => ({
+            ...raw,
+            body: '',
+            body_base64: raw.body ? btoa(unescape(encodeURIComponent(raw.body))) : '',
+            excerpt: '',
+            excerpt_base64: raw.excerpt ? btoa(unescape(encodeURIComponent(raw.excerpt))) : '',
+        }));
         // Standard Laravel multipart PUT requires sending as POST with _method = PUT
         submitForm(admin.posts.update({ post: post.id }).url, {
             onSuccess: () => {

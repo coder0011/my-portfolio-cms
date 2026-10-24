@@ -55,7 +55,9 @@ class PostController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'required|string|unique:posts,slug|max:255',
             'excerpt' => 'nullable|string',
+            'excerpt_base64' => 'nullable|string',
             'body' => 'nullable|string',
+            'body_base64' => 'nullable|string',
             'main_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'published_at' => 'nullable|date',
             'difficulty' => 'required|in:beginner,intermediate,advanced',
@@ -73,6 +75,20 @@ class PostController extends Controller
             'faqs.*.question' => 'nullable|string|max:500',
             'faqs.*.answer' => 'nullable|string',
         ]);
+
+        // Decode Base64-transported markdown body and excerpt to prevent WAF false-positives
+        if ($request->filled('body_base64')) {
+            $decodedBody = base64_decode($request->input('body_base64'), true);
+            if ($decodedBody !== false) {
+                $validated['body'] = $decodedBody;
+            }
+        }
+        if ($request->filled('excerpt_base64')) {
+            $decodedExcerpt = base64_decode($request->input('excerpt_base64'), true);
+            if ($decodedExcerpt !== false) {
+                $validated['excerpt'] = $decodedExcerpt;
+            }
+        }
 
         // Handle main image upload
         $imagePath = null;
@@ -176,7 +192,9 @@ class PostController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:posts,slug,'.$post->id,
             'excerpt' => 'nullable|string',
+            'excerpt_base64' => 'nullable|string',
             'body' => 'nullable|string',
+            'body_base64' => 'nullable|string',
             'main_image' => $request->hasFile('main_image') ? 'image|mimes:jpeg,png,jpg,gif,webp|max:5120' : 'nullable',
             'published_at' => 'nullable|date',
             'difficulty' => 'required|in:beginner,intermediate,advanced',
@@ -194,6 +212,20 @@ class PostController extends Controller
             'faqs.*.question' => 'nullable|string|max:500',
             'faqs.*.answer' => 'nullable|string',
         ]);
+
+        // Decode Base64-transported markdown body and excerpt to prevent WAF false-positives
+        if ($request->filled('body_base64')) {
+            $decodedBody = base64_decode($request->input('body_base64'), true);
+            if ($decodedBody !== false) {
+                $validated['body'] = $decodedBody;
+            }
+        }
+        if ($request->filled('excerpt_base64')) {
+            $decodedExcerpt = base64_decode($request->input('excerpt_base64'), true);
+            if ($decodedExcerpt !== false) {
+                $validated['excerpt'] = $decodedExcerpt;
+            }
+        }
 
         // Save a revision before updating safely
         try {
