@@ -45,7 +45,7 @@ class PostAiController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to generate SEO metadata: '.$e->getMessage(),
-            ], 500);
+            ], 422);
         }
     }
 
@@ -90,7 +90,7 @@ class PostAiController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Editorial assistant failed: '.$e->getMessage(),
-            ], 500);
+            ], 422);
         }
     }
 }

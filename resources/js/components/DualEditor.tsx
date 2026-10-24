@@ -7,8 +7,10 @@ import {
     FileText,
     Scissors,
     Loader2,
+    Maximize2,
+    Minimize2,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import MarkdownEditor from '@/components/editor/MarkdownEditor';
 import TipTapEditor from '@/components/editor/TipTapEditor';
@@ -35,8 +37,22 @@ export default function DualEditor({
     title = '',
 }: DualEditorProps) {
     const [mode, setMode] = useState<EditorMode>(defaultMode);
+    const [isFullscreen, setIsFullscreen] = useState(false);
     const [isAiLoading, setIsAiLoading] = useState(false);
     const [activeAiAction, setActiveAiAction] = useState<string | null>(null);
+
+    // Escape key listener to exit fullscreen mode
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isFullscreen) {
+                setIsFullscreen(false);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isFullscreen]);
 
     const handleTipTapChange = (markdown: string) => {
         onChange(markdown);
@@ -91,9 +107,15 @@ export default function DualEditor({
     };
 
     return (
-        <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all">
+        <div
+            className={`flex flex-col transition-all ${
+                isFullscreen
+                    ? 'fixed inset-0 z-50 h-screen w-screen rounded-none border-0 bg-background shadow-2xl'
+                    : 'overflow-hidden rounded-xl border border-border bg-card shadow-sm'
+            }`}
+        >
             {/* Studio Navigation & Mode Switcher Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-2 select-none">
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-2 select-none">
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2">
                         <span className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-foreground uppercase">
@@ -158,93 +180,125 @@ export default function DualEditor({
                     </div>
                 </div>
 
-                {/* 3-Way Mode Switcher */}
-                <div className="flex items-center rounded-lg border border-border/60 bg-muted/70 p-0.5">
-                    <button
-                        type="button"
-                        onClick={() => setMode('dual')}
-                        className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all ${
-                            mode === 'dual'
-                                ? 'bg-background text-foreground shadow-xs'
-                                : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                        title="Side-by-side Split View"
-                    >
-                        <Columns2 className="h-3.5 w-3.5" />
-                        <span>Dual</span>
-                    </button>
+                <div className="flex items-center gap-2">
+                    {/* 3-Way Mode Switcher */}
+                    <div className="flex items-center rounded-lg border border-border/60 bg-muted/70 p-0.5">
+                        <button
+                            type="button"
+                            onClick={() => setMode('dual')}
+                            className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all ${
+                                mode === 'dual'
+                                    ? 'bg-background text-foreground shadow-xs'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                            title="Side-by-side Split View"
+                        >
+                            <Columns2 className="h-3.5 w-3.5" />
+                            <span>Dual</span>
+                        </button>
 
-                    <button
-                        type="button"
-                        onClick={() => setMode('visual')}
-                        className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all ${
-                            mode === 'visual'
-                                ? 'bg-background text-foreground shadow-xs'
-                                : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                        title="Visual WYSIWYG Mode"
-                    >
-                        <Eye className="h-3.5 w-3.5" />
-                        <span>Visual</span>
-                    </button>
+                        <button
+                            type="button"
+                            onClick={() => setMode('visual')}
+                            className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all ${
+                                mode === 'visual'
+                                    ? 'bg-background text-foreground shadow-xs'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                            title="Visual WYSIWYG Mode"
+                        >
+                            <Eye className="h-3.5 w-3.5" />
+                            <span>Visual</span>
+                        </button>
 
+                        <button
+                            type="button"
+                            onClick={() => setMode('markdown')}
+                            className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all ${
+                                mode === 'markdown'
+                                    ? 'bg-background text-foreground shadow-xs'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                            title="Raw Markdown Code Mode"
+                        >
+                            <Code2 className="h-3.5 w-3.5" />
+                            <span>Markdown</span>
+                        </button>
+                    </div>
+
+                    {/* Fullscreen / Zen Writing Toggle */}
                     <button
                         type="button"
-                        onClick={() => setMode('markdown')}
-                        className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all ${
-                            mode === 'markdown'
-                                ? 'bg-background text-foreground shadow-xs'
-                                : 'text-muted-foreground hover:text-foreground'
+                        onClick={() => setIsFullscreen(!isFullscreen)}
+                        className={`flex items-center gap-1.5 rounded-lg border border-border/60 px-2.5 py-1 text-xs font-medium transition-all ${
+                            isFullscreen
+                                ? 'bg-primary text-primary-foreground shadow-xs'
+                                : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
                         }`}
-                        title="Raw Markdown Code Mode"
+                        title={
+                            isFullscreen
+                                ? 'Exit Fullscreen (Esc)'
+                                : 'Fullscreen / Zen Writing Mode'
+                        }
                     >
-                        <Code2 className="h-3.5 w-3.5" />
-                        <span>Markdown</span>
+                        {isFullscreen ? (
+                            <>
+                                <Minimize2 className="h-3.5 w-3.5" />
+                                <span className="hidden sm:inline">Exit</span>
+                            </>
+                        ) : (
+                            <>
+                                <Maximize2 className="h-3.5 w-3.5" />
+                                <span className="hidden sm:inline">Zen Mode</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
 
             {/* Editor Canvas Area */}
-            <div className="relative min-h-[420px]">
+            <div
+                className={`relative overflow-hidden ${
+                    isFullscreen
+                        ? 'flex-1 h-[calc(100vh-48px)]'
+                        : 'h-[580px]'
+                }`}
+            >
                 {mode === 'dual' && (
-                    <div className="grid min-h-[420px] grid-cols-1 divide-y divide-border lg:grid-cols-2 lg:divide-x lg:divide-y-0">
-                        <div className="flex flex-col overflow-hidden">
+                    <div className="grid h-full grid-cols-1 divide-y divide-border lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+                        <div className="flex h-full flex-col overflow-hidden">
                             <TipTapEditor
                                 content={value}
                                 onChange={handleTipTapChange}
                                 placeholder={placeholder}
-                                minHeight="min-h-[420px]"
                             />
                         </div>
-                        <div className="flex flex-col overflow-hidden">
+                        <div className="flex h-full flex-col overflow-hidden">
                             <MarkdownEditor
                                 value={value}
                                 onChange={handleMarkdownChange}
                                 placeholder={placeholder}
-                                minHeight="min-h-[420px]"
                             />
                         </div>
                     </div>
                 )}
 
                 {mode === 'visual' && (
-                    <div className="min-h-[420px]">
+                    <div className="h-full overflow-hidden">
                         <TipTapEditor
                             content={value}
                             onChange={handleTipTapChange}
                             placeholder={placeholder}
-                            minHeight="min-h-[420px]"
                         />
                     </div>
                 )}
 
                 {mode === 'markdown' && (
-                    <div className="min-h-[420px]">
+                    <div className="h-full overflow-hidden">
                         <MarkdownEditor
                             value={value}
                             onChange={handleMarkdownChange}
                             placeholder={placeholder}
-                            minHeight="min-h-[420px]"
                         />
                     </div>
                 )}

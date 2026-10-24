@@ -11,11 +11,15 @@ class ActivityLogger
      */
     public static function log(string $action, string $description, ?int $userId = null): void
     {
-        ActivityLog::create([
-            'user_id' => $userId ?? auth()->id(),
-            'action' => $action,
-            'description' => $description,
-            'ip_address' => request()->ip(),
-        ]);
+        try {
+            ActivityLog::create([
+                'user_id' => $userId ?? auth()->id(),
+                'action' => $action,
+                'description' => $description,
+                'ip_address' => request()->ip(),
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ActivityLogger failed: '.$e->getMessage());
+        }
     }
 }

@@ -62,8 +62,9 @@ class ImageService
                 }
 
                 return '/storage/'.$webpPath;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 // Fallback to storing original if compression fails
+                \Illuminate\Support\Facades\Log::warning('WebP compression fallback triggered: '.$e->getMessage());
                 $path = $file->storeAs(dirname($originalPath), basename($originalPath), 'public');
                 if ($path === false) {
                     throw new \RuntimeException('Failed to store uploaded file.');

@@ -55,6 +55,22 @@ export default function Edit({ post }: { post: Post }) {
             .slice(0, 16);
     };
 
+    const initialCategoriesList = Array.isArray(post.categories)
+        ? post.categories
+              .map((c: any) =>
+                  typeof c === 'string' ? c : c?.title || c?.name || '',
+              )
+              .filter(Boolean)
+        : [];
+
+    const initialTagsList = Array.isArray(post.tags)
+        ? post.tags
+              .map((t: any) =>
+                  typeof t === 'string' ? t : t?.name || t?.title || '',
+              )
+              .filter(Boolean)
+        : [];
+
     const {
         data,
         setData,
@@ -71,22 +87,22 @@ export default function Edit({ post }: { post: Post }) {
         published_at: formatDateTime(post.published_at),
         difficulty: post.difficulty,
         estimated_time: post.estimated_time ?? '',
-        tags: post.tags ?? [],
+        tags: initialTagsList,
         meta_title: post.meta_title ?? '',
         meta_description: post.meta_description ?? '',
         focus_keyword: post.focus_keyword ?? '',
         secondary_keywords: post.secondary_keywords ?? [],
         no_index: post.no_index,
-        categories: post.categories ?? [],
+        categories: initialCategoriesList,
         faqs: (post.faqs ?? []) as { question: string; answer: string }[],
     });
 
-    const [tagsInput, setTagsInput] = useState((post.tags ?? []).join(', '));
+    const [tagsInput, setTagsInput] = useState(initialTagsList.join(', '));
     const [secondaryKeywordsInput, setSecondaryKeywordsInput] = useState(
         (post.secondary_keywords ?? []).join(', '),
     );
     const [categoriesInput, setCategoriesInput] = useState(
-        (post.categories ?? []).join(', '),
+        initialCategoriesList.join(', '),
     );
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isAiSeoLoading, setIsAiSeoLoading] = useState(false);

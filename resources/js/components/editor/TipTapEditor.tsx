@@ -88,7 +88,7 @@ export function TipTapEditor({
         },
         editorProps: {
             attributes: {
-                class: `prose dark:prose-invert max-w-none focus:outline-none p-6 text-sm text-foreground ${minHeight} leading-relaxed`,
+                class: 'prose dark:prose-invert max-w-none focus:outline-none p-6 text-sm text-foreground min-h-full leading-relaxed',
             },
         },
     });
@@ -309,7 +309,7 @@ export function TipTapEditor({
 
             {/* Editor Content Area */}
             <div className="flex-1 overflow-y-auto bg-card">
-                <EditorContent editor={editor} />
+                <EditorContent editor={editor} className="min-h-full" />
             </div>
         </div>
     );

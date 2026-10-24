@@ -35,7 +35,7 @@ export function MarkdownEditor({
             <textarea
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className={`w-full flex-1 resize-none border-0 bg-transparent p-5 font-mono text-sm leading-relaxed text-zinc-200 outline-none selection:bg-zinc-800 placeholder:text-zinc-600 focus:ring-0 ${minHeight} overflow-y-auto`}
+                className="w-full h-full flex-1 resize-none border-0 bg-transparent p-5 font-mono text-sm leading-relaxed text-zinc-200 outline-none selection:bg-zinc-800 placeholder:text-zinc-600 focus:ring-0 overflow-y-auto"
                 placeholder={placeholder}
                 spellCheck={false}
             />

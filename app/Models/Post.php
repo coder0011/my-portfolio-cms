@@ -108,25 +108,29 @@ class Post extends Model
      */
     protected static function clearPostCache(Post $post): void
     {
-        // 1. Forget single post detail page cache
-        Cache::forget("blog_post_{$post->slug}");
+        try {
+            // 1. Forget single post detail page cache
+            Cache::forget("blog_post_{$post->slug}");
 
-        // 2. Forget blog slider cache
-        Cache::forget('blog_posts_slider');
+            // 2. Forget blog slider cache
+            Cache::forget('blog_posts_slider');
 
-        // 3. Forget sitemap cache if present
-        Cache::forget('sitemap_cache');
+            // 3. Forget sitemap cache if present
+            Cache::forget('sitemap_cache');
 
-        // 4. Forget all registered dynamic query listing caches
-        $keys = Cache::get('post_cache_keys', []);
-        if (is_array($keys)) {
-            foreach ($keys as $key) {
-                if (is_string($key)) {
-                    Cache::forget($key);
+            // 4. Forget all registered dynamic query listing caches
+            $keys = Cache::get('post_cache_keys', []);
+            if (is_array($keys)) {
+                foreach ($keys as $key) {
+                    if (is_string($key)) {
+                        Cache::forget($key);
+                    }
                 }
             }
+            Cache::forget('post_cache_keys');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed clearing post cache: '.$e->getMessage());
         }
-        Cache::forget('post_cache_keys');
     }
 
     /**
@@ -134,23 +138,27 @@ class Post extends Model
      */
     protected static function regeneratePostCache(Post $post): void
     {
-        // 1. Regenerate slider cache
-        static::regenerateSliderCache();
+        try {
+            // 1. Regenerate slider cache
+            static::regenerateSliderCache();
 
-        // 2. Regenerate single post detail page cache if the post still exists and is published
-        if ($post->exists && $post->published_at && $post->published_at <= now() && ! $post->no_index) {
-            Cache::rememberForever("blog_post_{$post->slug}", function () use ($post) {
-                return Post::with([
-                    'user:id,name,avatar,bio',
-                    'comments' => function ($query) {
-                        $query->where('approved', true)->orderBy('created_at', 'desc');
-                    },
-                ])
-                    ->where('slug', $post->slug)
-                    ->whereNotNull('published_at')
-                    ->where('published_at', '<=', now())
-                    ->first()?->toArray();
-            });
+            // 2. Regenerate single post detail page cache if the post still exists and is published
+            if ($post->exists && $post->published_at && $post->published_at <= now() && ! $post->no_index) {
+                Cache::rememberForever("blog_post_{$post->slug}", function () use ($post) {
+                    return Post::with([
+                        'user:id,name,avatar,bio',
+                        'comments' => function ($query) {
+                            $query->where('approved', true)->orderBy('created_at', 'desc');
+                        },
+                    ])
+                        ->where('slug', $post->slug)
+                        ->whereNotNull('published_at')
+                        ->where('published_at', '<=', now())
+                        ->first()?->toArray();
+                });
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed regenerating post cache: '.$e->getMessage());
         }
     }
 

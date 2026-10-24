@@ -56,18 +56,22 @@ class PostController extends Controller
             'slug' => 'required|string|unique:posts,slug|max:255',
             'excerpt' => 'nullable|string',
             'body' => 'nullable|string',
-            'main_image' => 'nullable|image|max:2048', // Max 2MB image
+            'main_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'published_at' => 'nullable|date',
             'difficulty' => 'required|in:beginner,intermediate,advanced',
-            'estimated_time' => 'nullable|string',
+            'estimated_time' => 'nullable|string|max:100',
             'tags' => 'nullable|array',
+            'tags.*' => 'string|max:50',
             'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string',
+            'meta_description' => 'nullable|string|max:500',
             'focus_keyword' => 'nullable|string|max:255',
             'secondary_keywords' => 'nullable|array',
-            'no_index' => 'boolean',
+            'secondary_keywords.*' => 'string|max:100',
+            'no_index' => 'nullable|boolean',
             'categories' => 'nullable|array',
             'faqs' => 'nullable|array',
+            'faqs.*.question' => 'nullable|string|max:500',
+            'faqs.*.answer' => 'nullable|string',
         ]);
 
         // Handle main image upload
@@ -76,27 +80,43 @@ class PostController extends Controller
             $imagePath = $imageService->upload($request->file('main_image'));
         }
 
+        // Clean FAQs of empty entries
+        $cleanFaqs = collect($validated['faqs'] ?? [])
+            ->filter(fn ($faq) => is_array($faq) && (filled(trim($faq['question'] ?? '')) || filled(trim($faq['answer'] ?? ''))))
+            ->values()
+            ->all();
+
+        // Clean categories list
+        $cleanCategories = collect($validated['categories'] ?? [])
+            ->filter(fn ($item) => is_string($item) ? filled(trim($item)) : !empty($item))
+            ->map(fn ($item) => is_array($item) ? ($item['title'] ?? $item['name'] ?? null) : $item)
+            ->filter()
+            ->values()
+            ->all();
+
+        $userId = $request->user()?->id ?? auth()->id();
+
         $post = Post::create([
             'title' => $validated['title'],
             'slug' => $validated['slug'] ?? Str::slug($validated['title']),
-            'excerpt' => $validated['excerpt'],
-            'body' => $validated['body'],
+            'excerpt' => $validated['excerpt'] ?? null,
+            'body' => $validated['body'] ?? null,
             'main_image' => $imagePath,
-            'published_at' => $validated['published_at'],
+            'published_at' => $validated['published_at'] ?? null,
             'difficulty' => $validated['difficulty'],
-            'estimated_time' => $validated['estimated_time'],
-            'tags' => $validated['tags'],
-            'meta_title' => $validated['meta_title'],
-            'meta_description' => $validated['meta_description'],
-            'focus_keyword' => $validated['focus_keyword'],
-            'secondary_keywords' => $validated['secondary_keywords'],
-            'no_index' => $validated['no_index'] ?? false,
-            'user_id' => $request->user()->id,
-            'faqs' => $validated['faqs'] ?? null,
-            'categories' => $validated['categories'] ?? null,
+            'estimated_time' => $validated['estimated_time'] ?? null,
+            'tags' => $validated['tags'] ?? null,
+            'meta_title' => $validated['meta_title'] ?? null,
+            'meta_description' => $validated['meta_description'] ?? null,
+            'focus_keyword' => $validated['focus_keyword'] ?? null,
+            'secondary_keywords' => $validated['secondary_keywords'] ?? null,
+            'no_index' => (bool) ($validated['no_index'] ?? false),
+            'user_id' => $userId,
+            'faqs' => $cleanFaqs,
+            'categories' => $cleanCategories,
         ]);
 
-        $this->syncCategories($post, $validated['categories'] ?? null);
+        $this->syncCategories($post, $cleanCategories);
 
         // Dispatch frontend rebuild webhook
         DispatchWebhookJob::dispatch('post.created', [
@@ -157,27 +177,38 @@ class PostController extends Controller
             'slug' => 'required|string|max:255|unique:posts,slug,'.$post->id,
             'excerpt' => 'nullable|string',
             'body' => 'nullable|string',
-            'main_image' => 'nullable', // Can be file or existing URL string
+            'main_image' => $request->hasFile('main_image') ? 'image|mimes:jpeg,png,jpg,gif,webp|max:5120' : 'nullable',
             'published_at' => 'nullable|date',
             'difficulty' => 'required|in:beginner,intermediate,advanced',
-            'estimated_time' => 'nullable|string',
+            'estimated_time' => 'nullable|string|max:100',
             'tags' => 'nullable|array',
+            'tags.*' => 'string|max:50',
             'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string',
+            'meta_description' => 'nullable|string|max:500',
             'focus_keyword' => 'nullable|string|max:255',
             'secondary_keywords' => 'nullable|array',
-            'no_index' => 'boolean',
+            'secondary_keywords.*' => 'string|max:100',
+            'no_index' => 'nullable|boolean',
             'categories' => 'nullable|array',
             'faqs' => 'nullable|array',
+            'faqs.*.question' => 'nullable|string|max:500',
+            'faqs.*.answer' => 'nullable|string',
         ]);
 
-        // Save a revision before updating
-        $post->revisions()->create([
-            'user_id' => $request->user()->id,
-            'title' => $post->title,
-            'excerpt' => $post->excerpt,
-            'body' => $post->body,
-        ]);
+        // Save a revision before updating safely
+        try {
+            $userId = $request->user()?->id ?? auth()->id();
+            if ($userId) {
+                $post->revisions()->create([
+                    'user_id' => $userId,
+                    'title' => $post->title,
+                    'excerpt' => $post->excerpt,
+                    'body' => $post->body,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed saving post revision: '.$e->getMessage());
+        }
 
         // Handle main image upload
         $imagePath = $post->main_image;
@@ -189,26 +220,40 @@ class PostController extends Controller
             $imagePath = $imageService->upload($request->file('main_image'));
         }
 
+        // Clean FAQs of empty entries
+        $cleanFaqs = collect($validated['faqs'] ?? [])
+            ->filter(fn ($faq) => is_array($faq) && (filled(trim($faq['question'] ?? '')) || filled(trim($faq['answer'] ?? ''))))
+            ->values()
+            ->all();
+
+        // Clean categories list
+        $cleanCategories = collect($validated['categories'] ?? [])
+            ->filter(fn ($item) => is_string($item) ? filled(trim($item)) : !empty($item))
+            ->map(fn ($item) => is_array($item) ? ($item['title'] ?? $item['name'] ?? null) : $item)
+            ->filter()
+            ->values()
+            ->all();
+
         $post->update([
             'title' => $validated['title'],
             'slug' => $validated['slug'],
-            'excerpt' => $validated['excerpt'],
-            'body' => $validated['body'],
+            'excerpt' => $validated['excerpt'] ?? null,
+            'body' => $validated['body'] ?? null,
             'main_image' => $imagePath,
-            'published_at' => $validated['published_at'],
+            'published_at' => $validated['published_at'] ?? null,
             'difficulty' => $validated['difficulty'],
-            'estimated_time' => $validated['estimated_time'],
-            'tags' => $validated['tags'],
-            'meta_title' => $validated['meta_title'],
-            'meta_description' => $validated['meta_description'],
-            'focus_keyword' => $validated['focus_keyword'],
-            'secondary_keywords' => $validated['secondary_keywords'],
-            'no_index' => $validated['no_index'] ?? false,
-            'faqs' => $validated['faqs'] ?? null,
-            'categories' => $validated['categories'] ?? null,
+            'estimated_time' => $validated['estimated_time'] ?? null,
+            'tags' => $validated['tags'] ?? null,
+            'meta_title' => $validated['meta_title'] ?? null,
+            'meta_description' => $validated['meta_description'] ?? null,
+            'focus_keyword' => $validated['focus_keyword'] ?? null,
+            'secondary_keywords' => $validated['secondary_keywords'] ?? null,
+            'no_index' => (bool) ($validated['no_index'] ?? false),
+            'faqs' => $cleanFaqs,
+            'categories' => $cleanCategories,
         ]);
 
-        $this->syncCategories($post, $validated['categories'] ?? null);
+        $this->syncCategories($post, $cleanCategories);
 
         // Dispatch frontend rebuild webhook
         DispatchWebhookJob::dispatch('post.updated', [
@@ -253,15 +298,37 @@ class PostController extends Controller
      */
     protected function syncCategories(Post $post, ?array $categoriesInput): void
     {
-        if (is_array($categoriesInput)) {
-            $categoryIds = collect($categoriesInput)->map(function ($name) {
-                $name = trim($name);
+        if (is_array($categoriesInput) && !empty($categoriesInput)) {
+            $categoryIds = collect($categoriesInput)
+                ->map(function ($item) {
+                    if (is_array($item)) {
+                        $name = $item['title'] ?? $item['name'] ?? '';
+                    } elseif (is_numeric($item)) {
+                        $cat = Category::find($item);
+                        return $cat?->id;
+                    } else {
+                        $name = (string) $item;
+                    }
 
-                return Category::firstOrCreate(
-                    ['title' => $name],
-                    ['slug' => Str::slug($name)]
-                )->id;
-            });
+                    $name = trim($name);
+                    if ($name === '') {
+                        return null;
+                    }
+
+                    $slug = Str::slug($name);
+                    if ($slug === '') {
+                        $slug = 'category-'.Str::random(6);
+                    }
+
+                    return Category::firstOrCreate(
+                        ['title' => $name],
+                        ['slug' => $slug]
+                    )->id;
+                })
+                ->filter()
+                ->unique()
+                ->values();
+
             $post->categories()->sync($categoryIds);
         } else {
             $post->categories()->detach();
