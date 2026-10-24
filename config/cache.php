@@ -101,7 +101,7 @@ return [
             'driver' => 'failover',
             'stores' => [
                 'redis',
-                'database',
+                'file',
             ],
         ],
 
