@@ -268,5 +268,44 @@ INSERT INTO `subscribers` (`id`, `email`, `verified_at`, `subscribed_at`, `creat
 (2, 'frontend.lead@innovate.co', NOW(), NOW(), NOW(), NOW()),
 (3, 'ux.researcher@saasflow.com', NOW(), NOW(), NOW(), NOW());
 
+-- --------------------------------------------------------
+-- 13. Populate Spatie Roles & Permissions
+-- --------------------------------------------------------
+INSERT INTO `roles` (`id`, `name`, `guard_name`, `created_at`, `updated_at`) VALUES
+(1, 'Super Admin', 'web', NOW(), NOW()),
+(2, 'Editor', 'web', NOW(), NOW()),
+(3, 'Moderator', 'web', NOW(), NOW())
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+
+INSERT INTO `permissions` (`name`, `guard_name`, `created_at`, `updated_at`) VALUES
+('posts.create', 'web', NOW(), NOW()),
+('posts.edit', 'web', NOW(), NOW()),
+('posts.delete', 'web', NOW(), NOW()),
+('posts.publish', 'web', NOW(), NOW()),
+('revisions.restore', 'web', NOW(), NOW()),
+('comments.approve', 'web', NOW(), NOW()),
+('comments.delete', 'web', NOW(), NOW()),
+('subscribers.manage', 'web', NOW(), NOW()),
+('contacts.manage', 'web', NOW(), NOW()),
+('logs.view', 'web', NOW(), NOW()),
+('educations.manage', 'web', NOW(), NOW()),
+('experiences.manage', 'web', NOW(), NOW()),
+('projects.manage', 'web', NOW(), NOW()),
+('users.manage', 'web', NOW(), NOW())
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+
+-- Grant all permissions to Super Admin role
+INSERT INTO `role_has_permissions` (`permission_id`, `role_id`)
+SELECT p.id, r.id FROM `permissions` p CROSS JOIN `roles` r WHERE r.name = 'Super Admin'
+ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`);
+
+-- Assign Super Admin role to all users (including user 1: Shivani)
+INSERT INTO `model_has_roles` (`role_id`, `model_type`, `model_id`)
+SELECT r.id, 'App\\Models\\User', u.id
+FROM `roles` r
+CROSS JOIN `users` u
+WHERE r.name = 'Super Admin'
+ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`);
+
 SET FOREIGN_KEY_CHECKS=1;
 COMMIT;
