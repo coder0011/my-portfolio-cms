@@ -27,11 +27,12 @@ jobs:
         run: |
           composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
-      # 4. Setup Node.js environment
+      # 4. Setup Node.js environment (LTS)
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: '24.22.1'
+          node-version: 'lts/*'
+          cache: 'npm'
 
       # 5. Install NPM dependencies and build production assets (Inertia/Vite)
       - name: Install & Build Assets
