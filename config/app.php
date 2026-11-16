@@ -62,6 +62,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | CMS Search Engine Indexing
+    |--------------------------------------------------------------------------
+    |
+    | Controls whether search engines are allowed to crawl the CMS platform.
+    | Defaults to false (noindex, nofollow) to protect the admin portal.
+    |
+    */
+    'cms_indexing' => env('CMS_INDEXING_ENABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

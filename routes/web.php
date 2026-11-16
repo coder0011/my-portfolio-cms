@@ -22,6 +22,15 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
+Route::get('robots.txt', function () {
+    $cmsIndexable = config('app.cms_indexing', false);
+    $content = $cmsIndexable
+        ? "User-agent: *\nDisallow: /dashboard/\nDisallow: /settings/\nDisallow: /api/\nAllow: /\n"
+        : "User-agent: *\nDisallow: /\n";
+
+    return response($content, 200, ['Content-Type' => 'text/plain']);
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         $postsCount = Post::count();
